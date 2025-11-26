@@ -1,0 +1,98 @@
+{
+  "name": "@bniddam/api-core",
+  "version": "0.1.0",
+  "description": "Generic HTTP API patterns for NestJS (DTOs, Zod validation, Swagger helpers)",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./dto": {
+      "types": "./dist/dto/index.d.ts",
+      "import": "./dist/dto/index.mjs",
+      "require": "./dist/dto/index.js"
+    },
+    "./validation": {
+      "types": "./dist/validation/index.d.ts",
+      "import": "./dist/validation/index.mjs",
+      "require": "./dist/validation/index.js"
+    },
+    "./swagger": {
+      "types": "./dist/swagger/index.d.ts",
+      "import": "./dist/swagger/index.mjs",
+      "require": "./dist/swagger/index.js"
+    },
+    "./http": {
+      "types": "./dist/http/index.d.ts",
+      "import": "./dist/http/index.mjs",
+      "require": "./dist/http/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "check": "biome check . && pnpm run typecheck",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "prepublishOnly": "pnpm run build"
+  },
+  "keywords": [
+    "nestjs",
+    "api",
+    "dto",
+    "validation",
+    "zod",
+    "swagger",
+    "openapi",
+    "http"
+  ],
+  "author": "bniddam",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bniddam/api-core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bniddam/api-core/issues"
+  },
+  "homepage": "https://github.com/bniddam/api-core#readme",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/swagger": "^11.0.0"
+  },
+  "dependencies": {
+    "@bniddam/core": "^0.1.0",
+    "@bniddam/utils": "^0.2.0",
+    "reflect-metadata": "^0.2.2",
+    "zod": "^3.24.1",
+    "zod-validation-error": "^3.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/swagger": "^11.0.0",
+    "@types/node": "^22.10.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.3",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

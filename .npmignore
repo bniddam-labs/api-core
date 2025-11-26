@@ -1,0 +1,30 @@
+# Source files
+src/
+*.spec.ts
+*.test.ts
+
+# Config files
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+biome.json
+
+# Development
+.github/
+.vscode/
+.idea/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Build artifacts
+*.tsbuildinfo
+
+# Docs (except README)
+docs/
+examples/
+
+# Misc
+.DS_Store
+*.log
