@@ -1,109 +1,101 @@
 {
-  "name": "@bniddam-labs/api-core",
-  "version": "0.1.0",
-  "description": "Generic HTTP API patterns for NestJS (DTOs, Zod validation, Swagger helpers)",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    },
-    "./pagination": {
-      "types": "./dist/pagination/index.d.ts",
-      "import": "./dist/pagination/index.mjs",
-      "require": "./dist/pagination/index.js"
-    },
-    "./id": {
-      "types": "./dist/id/index.d.ts",
-      "import": "./dist/id/index.mjs",
-      "require": "./dist/id/index.js"
-    },
-    "./validation": {
-      "types": "./dist/validation/index.d.ts",
-      "import": "./dist/validation/index.mjs",
-      "require": "./dist/validation/index.js"
-    },
-    "./swagger": {
-      "types": "./dist/swagger/index.d.ts",
-      "import": "./dist/swagger/index.mjs",
-      "require": "./dist/swagger/index.js"
-    },
-    "./http": {
-      "types": "./dist/http/index.d.ts",
-      "import": "./dist/http/index.mjs",
-      "require": "./dist/http/index.js"
-    }
-  },
-  "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "clean": "rm -rf dist",
-    "lint": "biome lint .",
-    "lint:fix": "biome lint --write .",
-    "format": "biome format --write .",
-    "check": "biome check . && pnpm run typecheck",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage",
-    "prepublishOnly": "pnpm run build"
-  },
-  "keywords": [
-    "nestjs",
-    "api",
-    "dto",
-    "validation",
-    "zod",
-    "swagger",
-    "openapi",
-    "http"
-  ],
-  "author": "bniddam",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/bniddam-labs/api-core.git"
-  },
-  "bugs": {
-    "url": "https://github.com/bniddam-labs/api-core/issues"
-  },
-  "homepage": "https://github.com/bniddam-labs/api-core#readme",
-  "files": [
-    "src",
-    "dist",
-    "README.md",
-    "LICENSE",
-    "*.json",
-    "*.ts"
-  ],
-  "peerDependencies": {
-    "@nestjs/common": "^11.0.0",
-    "@nestjs/swagger": "^11.0.0"
-  },
-  "dependencies": {
-    "@bniddam-labs/core": "github:bniddam-labs/core#v0.1.0",
-    "@bniddam-labs/utils": "github:bniddam-labs/utils#v0.2.0",
-    "reflect-metadata": "^0.2.2",
-    "zod": "^3.24.1",
-    "zod-validation-error": "^3.0.0"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.3.2",
-    "@nestjs/common": "^11.0.0",
-    "@nestjs/swagger": "^11.0.0",
-    "@types/express": "^5.0.5",
-    "@types/node": "^22.10.2",
-    "rxjs": "^7.8.2",
-    "tsup": "^8.3.5",
-    "typescript": "^5.7.3",
-    "vitest": "^2.0.0"
-    
-  },
-  "engines": {
-    "node": ">=20.0.0",
-    "pnpm": ">=9.0.0"
-  }
+	"name": "@bniddam-labs/api-core",
+	"version": "0.2.0",
+	"description": "Framework-agnostic HTTP API patterns with NestJS adapters (Zod schemas, validation, Swagger helpers)",
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js"
+		},
+		"./core": {
+			"types": "./dist/core/index.d.ts",
+			"import": "./dist/core/index.mjs",
+			"require": "./dist/core/index.js"
+		},
+		"./nestjs": {
+			"types": "./dist/nestjs/index.d.ts",
+			"import": "./dist/nestjs/index.mjs",
+			"require": "./dist/nestjs/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"clean": "rm -rf dist",
+		"lint": "biome lint .",
+		"lint:fix": "biome lint --write .",
+		"format": "biome format --write .",
+		"check": "biome check . && pnpm run typecheck",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest",
+		"test:watch": "vitest --watch",
+		"test:coverage": "vitest --coverage",
+		"prepublishOnly": "pnpm run build"
+	},
+	"keywords": [
+		"api",
+		"zod",
+		"validation",
+		"http",
+		"nestjs",
+		"swagger",
+		"openapi",
+		"framework-agnostic"
+	],
+	"author": "bniddam",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/bniddam-labs/api-core.git"
+	},
+	"bugs": {
+		"url": "https://github.com/bniddam-labs/api-core/issues"
+	},
+	"homepage": "https://github.com/bniddam-labs/api-core#readme",
+	"files": [
+		"src",
+		"dist",
+		"README.md",
+		"LICENSE",
+		"*.json",
+		"*.ts"
+	],
+	"peerDependencies": {
+		"@nestjs/common": "^11.0.0",
+		"@nestjs/swagger": "^11.0.0"
+	},
+	"peerDependenciesMeta": {
+		"@nestjs/common": {
+			"optional": true
+		},
+		"@nestjs/swagger": {
+			"optional": true
+		}
+	},
+	"dependencies": {
+		"@bniddam-labs/core": "github:bniddam-labs/core#v0.1.0",
+		"@bniddam-labs/utils": "github:bniddam-labs/utils#v0.2.0",
+		"reflect-metadata": "^0.2.2",
+		"zod": "^3.24.1",
+		"zod-validation-error": "^3.0.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.2",
+		"@nestjs/common": "^11.0.0",
+		"@nestjs/swagger": "^11.0.0",
+		"@types/express": "^5.0.5",
+		"@types/node": "^22.10.2",
+		"rxjs": "^7.8.2",
+		"tsup": "^8.3.5",
+		"typescript": "^5.7.3",
+		"vitest": "^2.0.0"
+	},
+	"engines": {
+		"node": ">=20.0.0",
+		"pnpm": ">=9.0.0"
+	}
 }

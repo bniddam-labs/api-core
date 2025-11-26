@@ -1,29 +1,65 @@
 /**
- * @saas/api-core
+ * @bniddam-labs/api-core
  *
- * Generic HTTP API patterns for NestJS applications
+ * Framework-agnostic HTTP API patterns with NestJS adapters
  *
  * This package provides:
- * - Generic DTOs for pagination, search, and common parameters
- * - Zod validation decorators and pipes
- * - Swagger/OpenAPI configuration and helper decorators
- * - Standard HTTP response types
+ * - Core: Zod schemas, types, and helpers (framework-agnostic)
+ * - NestJS: Decorators, pipes, filters, interceptors, Swagger helpers
  *
- * @example
+ * ## Usage
+ *
+ * ### Framework-agnostic (works with any HTTP framework)
  * ```typescript
- * // Import validation decorators
- * import { ZodBody, ZodQuery, ZodParam } from '@saas/api-core/validation';
+ * import {
+ *   // Schemas
+ *   uuidSchema,
+ *   slugSchema,
+ *   errorResponseSchema,
+ *   paginationQueryCoerceSchema,
+ *   createPaginatedResultSchema,
+ *   // Types
+ *   type ErrorResponse,
+ *   type PaginationMeta,
+ *   type PaginatedResult,
+ *   // Helpers
+ *   slugify,
+ *   calculatePaginationMeta,
+ *   toOffsetPagination
+ * } from '@bniddam-labs/api-core/core';
+ * ```
  *
- * // Import Swagger helpers
- * import { setupSwagger, ApiPaginatedResponse } from '@saas/api-core/swagger';
+ * ### NestJS-specific
+ * ```typescript
+ * import {
+ *   // Swagger decorators
+ *   ApiSuccessResponse,
+ *   ApiErrorResponse,
+ *   ApiPaginatedResponse,
+ *   ApiCommonResponses,
+ *   // Filters
+ *   AllExceptionsFilter,
+ *   HttpExceptionFilter,
+ *   // Interceptors
+ *   LoggingInterceptor,
+ *   // Pipes
+ *   ZodValidationPipe,
+ *   // Decorators
+ *   ZodBody,
+ *   ZodQuery,
+ *   ZodParam
+ * } from '@bniddam-labs/api-core/nestjs';
+ * ```
  *
- * // Import HTTP types
- * import type { ApiResponse } from '@saas/api-core/http';
+ * ### Import all
+ * ```typescript
+ * import * as apiCore from '@bniddam-labs/api-core';
+ * // or
+ * import * as core from '@bniddam-labs/api-core/core';
+ * import * as nestjs from '@bniddam-labs/api-core/nestjs';
  * ```
  */
 
-export * from './http';
-export * from './id';
-export * from './pagination';
-export * from './swagger';
-export * from './validation';
+// Re-export everything for convenience
+export * from './core';
+export * from './nestjs';

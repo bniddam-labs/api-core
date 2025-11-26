@@ -1,229 +1,355 @@
-# @bniddam/api-core
+# @bniddam-labs/api-core
 
-Generic HTTP API patterns for NestJS, including DTOs, Zod validation decorators, and Swagger/OpenAPI helpers.
+Framework-agnostic core schemas and NestJS utilities for building type-safe REST APIs.
 
 ## Features
 
-- **Zod Validation Decorators**: Type-safe request validation with @ZodBody, @ZodQuery, @ZodParam
-- **Standard DTOs**: Reusable DTOs for pagination, search, ID parameters
-- **Swagger Helpers**: Automatic OpenAPI documentation generation
-- **API Response Types**: Standardized response formats
-- **TypeScript First**: Full type safety and IntelliSense
-- **NestJS Integration**: Seamless integration with NestJS framework
+- **Zod Schemas**: Type-safe validation schemas for common API patterns
+- **Response Schemas**: Standardized success and error responses
+- **Pagination**: Complete pagination schemas with search and sort
+- **Auth Schemas**: Authentication and authorization schemas
+- **NestJS Integration**: Swagger decorators, filters, interceptors, pipes
+- **TypeScript First**: Full type safety and IntelliSense support
 
 ## Installation
 
-### Using pnpm link (local development)
-
 ```bash
-# Make sure dependencies are linked first
-cd /path/to/@bniddam/utils
-pnpm install && pnpm build && pnpm link --global
-
-cd /path/to/@bniddam/core
-pnpm install && pnpm link --global @bniddam/utils
-pnpm build && pnpm link --global
-
-# In @bniddam/api-core directory
-pnpm install
-pnpm link --global @bniddam/core @bniddam/utils
-pnpm build
-pnpm link --global
-
-# In your project
-pnpm link --global @bniddam/api-core @bniddam/core @bniddam/utils
-```
-
-### Using npm/pnpm (when published)
-
-```bash
-pnpm add @bniddam/api-core @bniddam/core @bniddam/utils
+pnpm add @bniddam-labs/api-core zod
 # or
-npm install @bniddam/api-core @bniddam/core @bniddam/utils
+npm install @bniddam-labs/api-core zod
 ```
 
-## Usage
+Peer dependencies (for NestJS integration):
 
-### Zod Validation Decorators
+```bash
+pnpm add @nestjs/common @nestjs/core @nestjs/swagger rxjs reflect-metadata
+```
+
+## Quick Start
+
+### Core Schemas (Framework-agnostic)
 
 ```typescript
-import { Controller, Post, Get } from '@nestjs/common';
-import { ZodBody, ZodQuery, ZodParam } from '@bniddam/api-core/validation';
-import { z } from 'zod';
+import {
+	// Common schemas
+	uuidSchema,
+	slugSchema,
+	idParamSchema,
 
-const CreateUserSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  age: z.number().min(18).optional(),
+	// Response schemas
+	errorResponseSchema,
+	createApiResponseSchema,
+
+	// Pagination schemas
+	paginationQueryCoerceSchema,
+	createPaginatedResultSchema,
+
+	// Auth schemas
+	authenticatedUserSchema,
+
+	// Types
+	type PaginationQuery,
+	type PaginatedResult,
+	type ErrorResponse,
+} from '@bniddam-labs/api-core/core';
+
+// Validate UUID
+const userId = uuidSchema.parse('123e4567-e89b-12d3-a456-426614174000');
+
+// Parse pagination query
+const query = paginationQueryCoerceSchema.parse({
+	page: '1',    // → 1 (number)
+	limit: '10',  // → 10 (number)
+	search: 'john',
+	sortBy: 'createdAt',
+	sortOrder: 'DESC',
 });
 
-const PaginationSchema = z.object({
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
+// Create typed response schema
+const userSchema = z.object({
+	id: z.string().uuid(),
+	name: z.string(),
+	email: z.string().email(),
 });
 
-const IdParamSchema = z.object({
-  id: z.string().uuid(),
-});
+const userResponseSchema = createApiResponseSchema(userSchema);
+const paginatedUsersSchema = createPaginatedResultSchema(userSchema);
+```
 
-type CreateUserDto = z.infer<typeof CreateUserSchema>;
-type PaginationDto = z.infer<typeof PaginationSchema>;
-type IdParamDto = z.infer<typeof IdParamSchema>;
+### NestJS Integration
+
+```typescript
+import {
+	ApiSuccessResponse,
+	ApiErrorResponse,
+	ApiCommonResponses,
+	ApiPaginatedResponse,
+} from '@bniddam-labs/api-core/nestjs';
+import { paginationQueryCoerceSchema } from '@bniddam-labs/api-core/core';
+import { createZodDto } from 'nestjs-zod';
+
+class PaginationQueryDto extends createZodDto(paginationQueryCoerceSchema) {}
 
 @Controller('users')
 export class UsersController {
-  @Post()
-  create(@ZodBody(CreateUserSchema) body: CreateUserDto) {
-    return { message: 'User created', data: body };
-  }
+	@Get()
+	@ApiPaginatedResponse(UserDto, 'Returns paginated list of users')
+	@ApiCommonResponses()
+	async findAll(@Query() query: PaginationQueryDto) {
+		return this.usersService.findAll(query);
+	}
 
-  @Get()
-  findAll(@ZodQuery(PaginationSchema) query: PaginationDto) {
-    return { page: query.page, limit: query.limit };
-  }
+	@Get(':id')
+	@ApiSuccessResponse({
+		status: 200,
+		description: 'Returns a user',
+		type: UserDto,
+	})
+	@ApiErrorResponse(404, 'User not found')
+	@ApiCommonResponses()
+	async findOne(@Param('id') id: string) {
+		return this.usersService.findOne(id);
+	}
 
-  @Get(':id')
-  findOne(@ZodParam(IdParamSchema) params: IdParamDto) {
-    return { id: params.id };
-  }
+	@Post()
+	@ApiSuccessResponse({
+		status: 201,
+		description: 'User created',
+		type: UserDto,
+	})
+	@ApiErrorResponse(400, 'Invalid request data')
+	@ApiErrorResponse(409, 'Email already exists')
+	async create(@Body() dto: CreateUserDto) {
+		return this.usersService.create(dto);
+	}
 }
 ```
 
-### Standard DTOs
+## Package Structure
 
-```typescript
-import { PaginationQueryDto, PaginatedResponseDto, IdParamDto } from '@bniddam/api-core/dto';
-
-@Controller('posts')
-export class PostsController {
-  @Get()
-  async findAll(@Query() query: PaginationQueryDto): Promise<PaginatedResponseDto<Post>> {
-    const { page, limit } = query;
-    const [data, total] = await this.postsService.findAndCount({ page, limit });
-
-    return new PaginatedResponseDto(data, {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    });
-  }
-
-  @Get(':id')
-  async findOne(@Param() params: IdParamDto) {
-    return this.postsService.findOne(params.id);
-  }
-}
+```
+@bniddam-labs/api-core/
+├── core/                  # Framework-agnostic schemas and types
+│   ├── schemas/
+│   │   ├── common.schema.ts      # UUIDs, slugs, IDs
+│   │   ├── response.schema.ts    # API responses (success/error)
+│   │   ├── pagination.schema.ts  # Pagination schemas
+│   │   └── auth.schema.ts        # Authentication schemas
+│   ├── types/            # TypeScript types
+│   └── helpers/          # Utility functions
+│
+└── nestjs/               # NestJS-specific utilities
+    ├── swagger/          # Swagger decorators
+    ├── filters/          # Exception filters
+    ├── interceptors/     # Response interceptors
+    ├── pipes/            # Validation pipes
+    └── decorators/       # Custom decorators
 ```
 
-### Swagger Integration
+## Core Schemas
+
+### Common Schemas
+
+| Schema | Description | Example |
+|--------|-------------|---------|
+| `uuidSchema` | UUID validation (any version) | `'123e4567-e89b-12d3-a456-426614174000'` |
+| `uuidV4Schema` | UUID v4 strict validation | `'550e8400-e29b-41d4-a716-446655440000'` |
+| `slugSchema` | Slug validation | `'my-awesome-post'` |
+| `idParamSchema` | Route parameter with UUID | `{ id: 'uuid' }` |
+| `slugParamSchema` | Route parameter with slug | `{ slug: 'my-post' }` |
+
+### Response Schemas
+
+| Schema | Description |
+|--------|-------------|
+| `errorResponseSchema` | Standard error response format |
+| `createApiResponseSchema(schema)` | Create typed success response |
+| `apiResponseMetaSchema` | Response metadata |
+
+### Pagination Schemas
+
+| Schema | Description |
+|--------|-------------|
+| `paginationParamsSchema` | Page-based pagination |
+| `offsetPaginationSchema` | Offset-based pagination |
+| `paginationQuerySchema` | Pagination + search + sort |
+| `paginationQueryCoerceSchema` | Auto-convert query strings |
+| `paginationMetaSchema` | Pagination metadata for responses |
+| `createPaginatedResultSchema(schema)` | Create typed paginated response |
+
+### Auth Schemas
+
+| Schema | Description |
+|--------|-------------|
+| `authenticatedUserSchema` | Authenticated user in request context |
+
+## NestJS Decorators
+
+### Swagger Decorators
+
+| Decorator | Description |
+|-----------|-------------|
+| `@ApiSuccessResponse(options)` | Document success responses |
+| `@ApiErrorResponse(status, description)` | Document error responses |
+| `@ApiCommonResponses()` | Add common errors (400, 401, 403, 404, 429, 500) |
+| `@ApiPaginatedResponse(dto, description)` | Document paginated responses |
+
+### Other Utilities
+
+- **Filters**: `AllExceptionsFilter`, `HttpExceptionFilter`
+- **Interceptors**: `LoggingInterceptor`, `TransformInterceptor`
+- **Pipes**: `ZodValidationPipe`
+
+## Documentation
+
+📚 **[Complete Documentation with Examples](./docs/SCHEMAS.md)**
+
+The documentation includes:
+- Detailed examples for all schemas
+- NestJS integration patterns
+- Complete CRUD example
+- Best practices
+- Type inference helpers
+
+## Examples
+
+### Pagination with Search & Sort
 
 ```typescript
-import { ApiResponseDto } from '@bniddam/api-core/swagger';
-import { ApiBadRequestResponse, ApiOkResponse } from '@nestjs/swagger';
+import { paginationQueryCoerceSchema } from '@bniddam-labs/api-core/core';
 
-@Controller('auth')
-export class AuthController {
-  @Post('login')
-  @ApiOkResponse(ApiResponseDto('Login successful', LoginResponseDto))
-  @ApiBadRequestResponse(ApiResponseDto('Invalid credentials'))
-  login(@ZodBody(LoginSchema) body: LoginDto) {
-    return this.authService.login(body);
-  }
-}
+// GET /api/users?page=2&limit=20&search=john&sortBy=createdAt&sortOrder=DESC
+const query = paginationQueryCoerceSchema.parse(req.query);
+// {
+//   page: 2,
+//   limit: 20,
+//   search: 'john',
+//   sortBy: 'createdAt',
+//   sortOrder: 'DESC'
+// }
 ```
 
-### API Response Type
+### Creating Paginated Response
 
 ```typescript
-import type { ApiResponse } from '@bniddam/api-core/http';
+import {
+	createPaginatedResultSchema,
+	type PaginatedResult,
+} from '@bniddam-labs/api-core/core';
 
-// Success response
-const successResponse: ApiResponse<User> = {
-  success: true,
-  message: 'User fetched successfully',
-  data: user,
-};
-
-// Error response
-const errorResponse: ApiResponse = {
-  success: false,
-  message: 'User not found',
-  error: 'NOT_FOUND',
-};
-```
-
-## API Reference
-
-### Validation Decorators (`@bniddam/api-core/validation`)
-
-- `@ZodBody(schema)` - Validate request body with Zod schema
-- `@ZodQuery(schema)` - Validate query parameters with Zod schema
-- `@ZodParam(schema)` - Validate route parameters with Zod schema
-- `ZodValidationPipe` - NestJS pipe for Zod validation
-
-### DTOs (`@bniddam/api-core/dto`)
-
-- `PaginationQueryDto` - Standard pagination query parameters
-- `PaginatedResponseDto<T>` - Paginated response wrapper
-- `SearchQueryDto` - Search with pagination
-- `IdParamDto` - UUID parameter validation
-
-### Swagger Helpers (`@bniddam/api-core/swagger`)
-
-- `ApiResponseDto(message, type?)` - Create Swagger response decorators
-- `setupSwagger(app, config)` - Configure Swagger/OpenAPI
-
-### HTTP Types (`@bniddam/api-core/http`)
-
-- `ApiResponse<T>` - Standard API response type
-  - `success: boolean`
-  - `message: string`
-  - `data?: T`
-  - `error?: string`
-  - `meta?: Record<string, any>`
-
-## Best Practices
-
-### Validation
-
-1. Define schemas once, reuse everywhere
-2. Use `z.infer` to extract TypeScript types
-3. Add custom error messages for better UX
-4. Use `.transform()` for data transformation
-
-```typescript
-const UserSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  age: z.string().transform(Number).pipe(z.number().min(18, 'Must be 18+')),
+const userSchema = z.object({
+	id: z.string().uuid(),
+	name: z.string(),
+	email: z.string().email(),
 });
+
+const paginatedUsersSchema = createPaginatedResultSchema(userSchema);
+
+const response: PaginatedResult<User> = {
+	data: users,
+	meta: {
+		page: 1,
+		limit: 10,
+		total: 100,
+		totalPages: 10,
+		hasNextPage: true,
+		hasPreviousPage: false,
+	},
+};
 ```
 
-### Pagination
+### Error Response
 
-1. Always use `PaginationQueryDto` for consistency
-2. Set reasonable defaults and limits
-3. Return total count for client-side pagination
-4. Use `PaginatedResponseDto` for standardized responses
+```typescript
+import { errorResponseSchema, type ErrorResponse } from '@bniddam-labs/api-core/core';
+
+const error: ErrorResponse = {
+	statusCode: 400,
+	message: ['email must be valid', 'password too short'],
+	error: 'Bad Request',
+	timestamp: '2025-01-26T10:30:00.000Z',
+	path: '/api/users',
+	method: 'POST',
+};
+```
 
 ### Swagger Documentation
 
-1. Add `@Api*` decorators to all endpoints
-2. Use `ApiResponseDto` for consistent response schemas
-3. Document all error cases
-4. Add examples for complex schemas
+```typescript
+@Get()
+@ApiPaginatedResponse(UserDto, 'Returns paginated users')
+@ApiCommonResponses()
+async findAll(@Query() query: PaginationQueryDto) {
+	// Auto-documented with Swagger
+}
+```
 
-## Peer Dependencies
+## Best Practices
 
-This package requires:
+### 1. Use Schema Validation
 
-- `@nestjs/common`: ^11.0.0
-- `@nestjs/swagger`: ^11.0.0
+```typescript
+// ✅ Good - Always validate inputs
+const params = paginationQueryCoerceSchema.parse(req.query);
 
-Install them in your project:
+// ❌ Bad - No validation
+const page = Number(req.query.page);
+```
 
-```bash
-pnpm add @nestjs/common @nestjs/swagger
+### 2. Type Inference
+
+```typescript
+// ✅ Good - Use inferred types
+import { type PaginationQuery } from '@bniddam-labs/api-core/core';
+
+// ❌ Bad - Manual types
+type PaginationQuery = { page: number; limit: number };
+```
+
+### 3. Reuse Schemas
+
+```typescript
+// ✅ Good - Use factory functions
+const userResponseSchema = createApiResponseSchema(userSchema);
+
+// ❌ Bad - Duplicate schema definitions
+const userResponseSchema = z.object({ data: userSchema, meta: ... });
+```
+
+### 4. Document APIs
+
+```typescript
+// ✅ Good - Full Swagger documentation
+@ApiSuccessResponse({ status: 200, type: UserDto })
+@ApiCommonResponses()
+
+// ❌ Bad - No documentation
+async findAll() { }
+```
+
+## TypeScript Support
+
+All schemas export TypeScript types:
+
+```typescript
+import type {
+	// Common types
+	IdParam,
+	SlugParam,
+
+	// Response types
+	ApiResponseMeta,
+	ErrorResponse,
+
+	// Pagination types
+	PaginationParams,
+	PaginationMeta,
+	PaginationQuery,
+	PaginatedResult,
+
+	// Auth types
+	AuthenticatedUser,
+} from '@bniddam-labs/api-core/core';
 ```
 
 ## Development
@@ -231,9 +357,6 @@ pnpm add @nestjs/common @nestjs/swagger
 ```bash
 # Install dependencies
 pnpm install
-
-# Link dependencies (required)
-pnpm link --global @bniddam/core @bniddam/utils
 
 # Build the package
 pnpm build
@@ -249,17 +372,19 @@ pnpm typecheck
 
 # Lint
 pnpm lint
-
-# Format
-pnpm format
 ```
 
 ## Requirements
 
 - Node.js >= 20
-- pnpm >= 9
-- NestJS >= 11
+- TypeScript >= 5.0
+- Zod >= 3.22
+
+For NestJS integration:
+- @nestjs/common >= 10.0
+- @nestjs/core >= 10.0
+- @nestjs/swagger >= 7.0
 
 ## License
 
-MIT © bniddam
+MIT © Benjamin Niddam
