@@ -17,10 +17,10 @@ export const apiResponseMetaSchema = z.record(z.string(), z.unknown());
  * ```
  */
 export const createApiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
-  z.object({
-    data: dataSchema,
-    meta: apiResponseMetaSchema.optional(),
-  });
+	z.object({
+		data: dataSchema,
+		meta: apiResponseMetaSchema.optional(),
+	});
 
 /**
  * Generic API response type derived from schema
@@ -38,26 +38,38 @@ export const createApiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =
  * ```
  */
 export type ApiResponse<T> = {
-  data: T;
-  meta?: z.infer<typeof apiResponseMetaSchema>;
+	data: T;
+	meta?: z.infer<typeof apiResponseMetaSchema>;
 };
 
 /**
  * Zod schema for error response
  */
 export const errorResponseSchema = z.object({
-  /** HTTP status code */
-  statusCode: z.number().int().min(100).max(599),
-  /** Error message(s) */
-  message: z.union([z.string(), z.array(z.string())]),
-  /** Error type */
-  error: z.string(),
-  /** Timestamp when the error occurred */
-  timestamp: z.string().optional(),
-  /** Request path that caused the error */
-  path: z.string().optional(),
-  /** HTTP method used */
-  method: z.string().optional(),
+	/** HTTP status code */
+	statusCode: z.number().int().min(100).max(599),
+	/** Error message(s) */
+	message: z.union([z.string(), z.array(z.string())]),
+	/** Error type */
+	error: z.string(),
+	/** Timestamp when the error occurred */
+	timestamp: z.string().optional(),
+	/** Request path that caused the error */
+	path: z.string().optional(),
+	/** HTTP method used */
+	method: z.string().optional(),
 });
 
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;
+
+/**
+ * Zod schema for authenticated user in request
+ */
+export const authenticatedUserSchema = z.object({
+	/** User ID */
+	id: z.string(),
+	/** User email */
+	email: z.string().email().optional(),
+});
+
+export type AuthenticatedUser = z.infer<typeof authenticatedUserSchema>;
