@@ -1,7 +1,29 @@
+import { z } from 'zod';
+
 /**
- * Standard API response envelope type
+ * Zod schema for API response metadata
+ */
+export const apiResponseMetaSchema = z.record(z.string(), z.unknown());
+
+/**
+ * Create a Zod schema for API response with typed data
  *
- * Provides a consistent structure for API responses with optional metadata.
+ * @template T - Zod schema for the data
+ *
+ * @example
+ * ```typescript
+ * const userResponseSchema = createApiResponseSchema(userSchema);
+ * type UserResponse = z.infer<typeof userResponseSchema>;
+ * ```
+ */
+export const createApiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
+  z.object({
+    data: dataSchema,
+    meta: apiResponseMetaSchema.optional(),
+  });
+
+/**
+ * Generic API response type derived from schema
  *
  * @template T - The type of data being returned
  *
@@ -9,78 +31,33 @@
  * ```typescript
  * import type { ApiResponse } from '@saas/api-core';
  *
- * // Simple response
  * const response: ApiResponse<User> = {
  *   data: user,
- * };
- *
- * // Response with metadata
- * const response: ApiResponse<User[]> = {
- *   data: users,
- *   meta: {
- *     timestamp: new Date().toISOString(),
- *     requestId: '123',
- *   },
+ *   meta: { requestId: '123' },
  * };
  * ```
  */
-export interface ApiResponse<T> {
-  /**
-   * The response data
-   */
+export type ApiResponse<T> = {
   data: T;
-
-  /**
-   * Optional metadata about the response
-   */
-  meta?: Record<string, any>;
-}
+  meta?: z.infer<typeof apiResponseMetaSchema>;
+};
 
 /**
- * Standard API error response type
- *
- * @example
- * ```typescript
- * import type { ErrorResponse } from '@saas/api-core';
- *
- * const errorResponse: ErrorResponse = {
- *   statusCode: 400,
- *   message: 'Validation failed',
- *   error: 'Bad Request',
- *   timestamp: new Date().toISOString(),
- *   path: '/api/users',
- *   method: 'POST',
- * };
- * ```
+ * Zod schema for error response
  */
-export interface ErrorResponse {
-  /**
-   * HTTP status code
-   */
-  statusCode: number;
+export const errorResponseSchema = z.object({
+  /** HTTP status code */
+  statusCode: z.number().int().min(100).max(599),
+  /** Error message(s) */
+  message: z.union([z.string(), z.array(z.string())]),
+  /** Error type */
+  error: z.string(),
+  /** Timestamp when the error occurred */
+  timestamp: z.string().optional(),
+  /** Request path that caused the error */
+  path: z.string().optional(),
+  /** HTTP method used */
+  method: z.string().optional(),
+});
 
-  /**
-   * Error message(s)
-   */
-  message: string | string[];
-
-  /**
-   * Error type
-   */
-  error: string;
-
-  /**
-   * Timestamp when the error occurred
-   */
-  timestamp?: string;
-
-  /**
-   * Request path that caused the error
-   */
-  path?: string;
-
-  /**
-   * HTTP method used
-   */
-  method?: string;
-}
+export type ErrorResponse = z.infer<typeof errorResponseSchema>;

@@ -11,9 +11,6 @@
  *
  * @example
  * ```typescript
- * // Import DTOs
- * import { PaginatedResponseDto, PaginationQueryDto } from '@saas/api-core/dto';
- *
  * // Import validation decorators
  * import { ZodBody, ZodQuery, ZodParam } from '@saas/api-core/validation';
  *
@@ -25,7 +22,8 @@
  * ```
  */
 
-export * from './dto';
-export * from './validation';
-export * from './swagger';
 export * from './http';
+export * from './id';
+export * from './pagination';
+export * from './swagger';
+export * from './validation';

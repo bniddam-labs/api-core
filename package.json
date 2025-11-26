@@ -11,10 +11,15 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
-    "./dto": {
-      "types": "./dist/dto/index.d.ts",
-      "import": "./dist/dto/index.mjs",
-      "require": "./dist/dto/index.js"
+    "./pagination": {
+      "types": "./dist/pagination/index.d.ts",
+      "import": "./dist/pagination/index.mjs",
+      "require": "./dist/pagination/index.js"
+    },
+    "./id": {
+      "types": "./dist/id/index.d.ts",
+      "import": "./dist/id/index.mjs",
+      "require": "./dist/id/index.js"
     },
     "./validation": {
       "types": "./dist/validation/index.d.ts",

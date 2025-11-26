@@ -5,5 +5,5 @@
 
 export * from './zod.pipe';
 export * from './zod-body.decorator';
-export * from './zod-query.decorator';
 export * from './zod-param.decorator';
+export * from './zod-query.decorator';
