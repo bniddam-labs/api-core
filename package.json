@@ -1,5 +1,5 @@
 {
-  "name": "@bniddam/api-core",
+  "name": "@bniddam-labs/api-core",
   "version": "0.1.0",
   "description": "Generic HTTP API patterns for NestJS (DTOs, Zod validation, Swagger helpers)",
   "main": "./dist/index.js",
@@ -76,8 +76,8 @@
     "@nestjs/swagger": "^11.0.0"
   },
   "dependencies": {
-    "@bniddam/core": "^0.1.0",
-    "@bniddam/utils": "^0.2.0",
+    "@bniddam-labs/core": "^0.1.0",
+    "@bniddam-labs/utils": "^0.2.0",
     "reflect-metadata": "^0.2.2",
     "zod": "^3.24.1",
     "zod-validation-error": "^3.0.0"
