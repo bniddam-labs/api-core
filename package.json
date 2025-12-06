@@ -1,6 +1,6 @@
 {
 	"name": "@bniddam-labs/api-core",
-	"version": "0.2.1",
+	"version": "0.3.0",
 	"description": "Framework-agnostic HTTP API patterns with NestJS adapters (Zod schemas, validation, Swagger helpers)",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
@@ -10,16 +10,6 @@
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.mjs",
 			"require": "./dist/index.js"
-		},
-		"./core": {
-			"types": "./dist/core/index.d.ts",
-			"import": "./dist/core/index.mjs",
-			"require": "./dist/core/index.js"
-		},
-		"./nestjs": {
-			"types": "./dist/nestjs/index.d.ts",
-			"import": "./dist/nestjs/index.mjs",
-			"require": "./dist/nestjs/index.js"
 		}
 	},
 	"scripts": {

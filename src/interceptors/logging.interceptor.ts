@@ -2,7 +2,7 @@ import { type CallHandler, type ExecutionContext, Injectable, Logger, type NestI
 import type { Request, Response } from 'express';
 import type { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import type { AuthenticatedUser } from '../../core/types';
+import type { AuthenticatedUser } from '../types';
 
 /**
  * Interface for authenticated requests with user information
