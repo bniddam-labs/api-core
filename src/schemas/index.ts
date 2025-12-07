@@ -5,13 +5,13 @@
  */
 
 // Common schemas (IDs, UUIDs, slugs)
-export * from './common.schema';
+export * from './common.schema.js';
 
 // API response schemas (success and error)
-export * from './response.schema';
+export * from './response.schema.js';
 
 // Pagination schemas
-export * from './pagination.schema';
+export * from './pagination.schema.js';
 
 // Authentication schemas
-export * from './auth.schema';
+export * from './auth.schema.js';

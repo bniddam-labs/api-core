@@ -2,6 +2,6 @@
  * Core helper functions - framework-agnostic
  */
 
-export * from './id.helpers';
-export * from './pagination.helpers';
-export * from './slug.helpers';
+export * from './id.helpers.js';
+export * from './pagination.helpers.js';
+export * from './slug.helpers.js';

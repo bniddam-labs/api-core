@@ -1,6 +1,7 @@
 packages: []
 
 onlyBuiltDependencies:
+  - '@bniddam-labs/utils'
   - '@nestjs/core'
   - '@scarf/scarf'
   - esbuild

@@ -1,7 +1,7 @@
 import { type ArgumentsHost, Catch, type ExceptionFilter, HttpException } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { ConsoleLogger } from '@bniddam-labs/core';
-import type { ErrorResponse } from '../types';
+import type { ErrorResponse } from '../types/index.js';
 
 /**
  * Exception filter specifically for HttpException instances

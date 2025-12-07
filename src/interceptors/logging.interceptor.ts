@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import type { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { ConsoleLogger } from '@bniddam-labs/core';
-import type { AuthenticatedUser } from '../types';
+import type { AuthenticatedUser } from '../types/index.js';
 
 /**
  * Interface for authenticated requests with user information

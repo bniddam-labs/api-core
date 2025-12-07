@@ -3,21 +3,21 @@
  * All types are re-exported from Zod schemas for convenience
  */
 
-import type { ApiResponseMeta as _ApiResponseMeta } from '../schemas/response.schema';
-import type { PaginationMeta as _PaginationMeta } from '../schemas/pagination.schema';
+import type { ApiResponseMeta as _ApiResponseMeta } from '../schemas/response.schema.js';
+import type { PaginationMeta as _PaginationMeta } from '../schemas/pagination.schema.js';
 
 // Re-export all types from schemas (types are now defined alongside schemas)
 export type {
 	// Common types
 	IdParam,
 	SlugParam,
-} from '../schemas/common.schema';
+} from '../schemas/common.schema.js';
 
 export type {
 	// Response types
 	ApiResponseMeta,
 	ErrorResponse,
-} from '../schemas/response.schema';
+} from '../schemas/response.schema.js';
 
 export type {
 	// Pagination types
@@ -26,12 +26,12 @@ export type {
 	PaginationMeta,
 	PaginationQuery,
 	PaginationQueryCoerce,
-} from '../schemas/pagination.schema';
+} from '../schemas/pagination.schema.js';
 
 export type {
 	// Auth types
 	AuthenticatedUser,
-} from '../schemas/auth.schema';
+} from '../schemas/auth.schema.js';
 
 // Additional helper types
 

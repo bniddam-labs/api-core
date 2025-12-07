@@ -2,4 +2,4 @@
  * NestJS Interceptors
  */
 
-export * from './logging.interceptor';
+export * from './logging.interceptor.js';

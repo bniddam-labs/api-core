@@ -1,5 +1,5 @@
-import type { OffsetPagination, PaginatedResult, PaginationMeta, PaginationParams } from '../types';
-import { MAX_ITEMS_PER_PAGE } from '../schemas/pagination.schema';
+import type { OffsetPagination, PaginatedResult, PaginationMeta, PaginationParams } from '../types/index.js';
+import { MAX_ITEMS_PER_PAGE } from '../schemas/pagination.schema.js';
 
 /**
  * Convert page-based pagination to offset-based pagination

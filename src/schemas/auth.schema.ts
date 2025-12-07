@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { uuidSchema } from './common.schema';
+import { uuidSchema } from './common.schema.js';
 
 /**
  * Zod schemas for authentication and authorization

@@ -1,6 +1,6 @@
 import { Param } from '@nestjs/common';
 import type { ZodSchema } from 'zod';
-import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '../pipes/zod-validation.pipe.js';
 
 /**
  * Custom decorator that combines @Param and Zod validation.

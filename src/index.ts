@@ -9,13 +9,13 @@
  */
 
 // Core exports (framework-agnostic)
-export * from './schemas';
-export * from './types';
-export * from './helpers';
+export * from './schemas/index.js';
+export * from './types/index.js';
+export * from './helpers/index.js';
 
 // NestJS-specific exports
-export * from './decorators';
-export * from './filters';
-export * from './interceptors';
-export * from './pipes';
-export * from './swagger';
+export * from './decorators/index.js';
+export * from './filters/index.js';
+export * from './interceptors/index.js';
+export * from './pipes/index.js';
+export * from './swagger/index.js';

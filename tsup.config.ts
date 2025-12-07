@@ -5,7 +5,9 @@ export default defineConfig({
 		index: 'src/index.ts',
 	},
 	format: ['cjs', 'esm'],
-	dts: true,
+	dts: {
+		resolve: true,
+	},
 	sourcemap: true,
 	clean: true,
 	splitting: false,
@@ -18,5 +20,6 @@ export default defineConfig({
 		'rxjs',
 		'zod',
 		'zod-validation-error',
+		'express',
 	],
 });
