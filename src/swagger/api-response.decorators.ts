@@ -19,7 +19,12 @@ export const apiResponseDecoratorOptionsSchema = z.object({
 /**
  * Options for API response decorator
  */
-export type ApiResponseDecoratorOptions = z.infer<typeof apiResponseDecoratorOptionsSchema>;
+export type ApiResponseDecoratorOptions = Omit<
+	z.infer<typeof apiResponseDecoratorOptionsSchema>,
+	'isArray'
+> & {
+	isArray?: boolean;
+};
 
 /**
  * Decorator for documenting successful API responses in Swagger

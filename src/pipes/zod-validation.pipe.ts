@@ -1,6 +1,7 @@
-import { type ArgumentMetadata, BadRequestException, Injectable, Logger, type PipeTransform } from '@nestjs/common';
+import { type ArgumentMetadata, BadRequestException, Injectable, type PipeTransform } from '@nestjs/common';
 import type { ZodError, ZodSchema } from 'zod';
 import { fromError } from 'zod-validation-error';
+import { ConsoleLogger } from '@bniddam-labs/core';
 
 /**
  * Zod validation pipe for NestJS
@@ -48,13 +49,13 @@ import { fromError } from 'zod-validation-error';
  */
 @Injectable()
 export class ZodValidationPipe implements PipeTransform {
-	private readonly logger = new Logger(ZodValidationPipe.name);
+	private readonly logger = new ConsoleLogger('ZodValidationPipe');
 
 	/**
 	 * @param schema - Zod schema to validate against
 	 * @param schemaName - Optional name of the schema for better logging (e.g., 'loginSchema', 'registerUserSchema')
 	 */
-	constructor(private schema: ZodSchema, private schemaName?: string) {}
+	constructor(private readonly schema: ZodSchema, private readonly schemaName?: string) {}
 
 	transform(value: unknown, _metadata: ArgumentMetadata) {
 		try {
