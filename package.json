@@ -68,8 +68,8 @@
 		}
 	},
 	"dependencies": {
-		"@bniddam-labs/core": "github:bniddam-labs/core#v0.1.0",
-		"@bniddam-labs/utils": "github:bniddam-labs/utils#v0.2.0",
+		"@bniddam-labs/core": "github:bniddam-labs/core",
+		"@bniddam-labs/utils": "github:bniddam-labs/utils",
 		"reflect-metadata": "^0.2.2",
 		"zod": "^3.24.1",
 		"zod-validation-error": "^3.0.0"
