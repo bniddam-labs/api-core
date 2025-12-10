@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { Injectable, Catch, HttpException, BadRequestException, Body, Param, Query, HttpStatus, applyDecorators } from '@nestjs/common';
-import { fromError } from 'zod-validation-error';
+import { Injectable, Catch, HttpException, Logger, BadRequestException, Body, Param, Query, HttpStatus, applyDecorators } from '@nestjs/common';
 import { ConsoleLogger } from '@bniddam-labs/core';
 import { tap } from 'rxjs/operators';
 import { ApiResponse, DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -110,7 +109,7 @@ var authenticatedUserSchema = z.object({
   /** User unique identifier (UUID) */
   id: uuidSchema,
   /** User email address */
-  email: z.string().email().optional()
+  email: z.email().optional()
 });
 
 // src/helpers/id.helpers.ts
@@ -179,79 +178,136 @@ function generateUniqueSlug(value, existingSlugs, fallback) {
 function isValidSlug(value) {
   return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(value);
 }
+var isInvalidType = (issue) => issue.code === "invalid_type";
+var isInvalidFormat = (issue) => issue.code === "invalid_format";
+var isTooSmall = (issue) => issue.code === "too_small";
+var isTooBig = (issue) => issue.code === "too_big";
+var isNotMultipleOf = (issue) => issue.code === "not_multiple_of";
+var isUnrecognizedKeys = (issue) => issue.code === "unrecognized_keys";
+var isInvalidUnion = (issue) => issue.code === "invalid_union";
+var isInvalidKey = (issue) => issue.code === "invalid_key";
+var isInvalidElement = (issue) => issue.code === "invalid_element";
+var isInvalidValue = (issue) => issue.code === "invalid_value";
+var isCustomIssue = (issue) => issue.code === "custom";
+function readInput(issue) {
+  const candidate = issue;
+  return candidate.input !== void 0 ? JSON.stringify(candidate.input) : "<no input>";
+}
 var ZodValidationPipe = class {
-  /**
-   * @param schema - Zod schema to validate against
-   * @param schemaName - Optional name of the schema for better logging (e.g., 'loginSchema', 'registerUserSchema')
-   */
   constructor(schema, schemaName) {
     this.schema = schema;
     this.schemaName = schemaName;
   }
-  logger = new ConsoleLogger("ZodValidationPipe");
-  transform(value, _metadata) {
+  logger = new Logger(ZodValidationPipe.name);
+  transform(value, metadata) {
     try {
-      const parsedValue = this.schema.parse(value);
-      return parsedValue;
-    } catch (error) {
-      const isDevelopment = process.env.NODE_ENV === "development";
-      if (isDevelopment && this.isZodError(error)) {
-        this.logZodValidationError(error, value);
+      return this.schema.parse(value);
+    } catch (err) {
+      if (err instanceof Error && err.issues) {
+        this.logZodValidationError(err, value);
+        throw new BadRequestException("Validation error");
       }
-      const validationError = fromError(error);
-      let detailedErrors = [];
-      if (error && typeof error === "object" && "issues" in error) {
-        detailedErrors = error.issues.map((issue) => ({
-          path: issue.path.join("."),
-          message: issue.message
-        }));
-      }
-      throw new BadRequestException({
-        message: "Validation failed",
-        error: validationError.toString(),
-        errors: detailedErrors,
-        statusCode: 400
-      });
+      throw err;
     }
   }
-  /**
-   * Type guard to check if error is a ZodError
-   */
-  isZodError(error) {
-    return error !== null && typeof error === "object" && "issues" in error && Array.isArray(error.issues);
-  }
-  /**
-   * Log detailed Zod validation errors in development mode
-   * This provides comprehensive error information without affecting the HTTP response
-   */
+  /* -------------------------------------------------------
+   * Log complet des erreurs Zod v4
+   * ----------------------------------------------------- */
   logZodValidationError(error, rawData) {
     const schemaInfo = this.schemaName ? `Schema: ${this.schemaName}` : "Schema: <unnamed>";
     const separator = "\u2500".repeat(80);
-    const errorLines = ["", separator, "\u274C [ZOD VALIDATION ERROR]", schemaInfo, "", "Issues:"];
+    const lines = ["", separator, "\u274C [ZOD VALIDATION ERROR]", schemaInfo, "", "Issues:"];
     for (const issue of error.issues) {
-      const path = issue.path.length > 0 ? issue.path.join(".") : "<root>";
-      const received = "received" in issue ? ` (received: ${JSON.stringify(issue.received)})` : "";
-      const expected = "expected" in issue ? ` (expected: ${issue.expected})` : "";
-      errorLines.push(`  \u2022 ${path}: ${issue.message}${expected}${received}`);
-      if (issue.code === "invalid_type") {
-        errorLines.push(`    \u2514\u2500 Type mismatch detected`);
-      } else if (issue.code === "invalid_string" && "validation" in issue) {
-        errorLines.push(`    \u2514\u2500 Validation type: ${issue.validation}`);
-      } else if (issue.code === "too_small" || issue.code === "too_big") {
-        errorLines.push(`    \u2514\u2500 Constraint violation`);
-      }
+      lines.push(...this.formatIssue(issue));
     }
-    errorLines.push("");
-    errorLines.push("Raw data received:");
-    const rawDataString = JSON.stringify(rawData, null, 2);
-    if (rawDataString.length > 1e3) {
-      errorLines.push(`${rawDataString.substring(0, 1e3)}... [truncated, total size: ${rawDataString.length} chars]`);
+    lines.push("");
+    lines.push("Raw data received:");
+    const rawString = JSON.stringify(rawData, null, 2);
+    if (rawString.length > 3e3) {
+      lines.push(rawString.slice(0, 3e3) + "... [truncated]");
     } else {
-      errorLines.push(rawDataString);
+      lines.push(rawString);
     }
-    errorLines.push(separator);
-    errorLines.push("");
-    this.logger.error(errorLines.join("\n"));
+    lines.push(separator);
+    lines.push("");
+    this.logger.error(lines.join("\n"));
+  }
+  /* -------------------------------------------------------
+   * Formatage exhaustif des issues Zod v4
+   * ----------------------------------------------------- */
+  formatIssue(issue) {
+    const path = issue.path.length > 0 ? issue.path.join(".") : "<root>";
+    const out = [`  \u2022 ${path}: ${issue.message}`];
+    const inputStr = readInput(issue);
+    if (isInvalidType(issue)) {
+      out.push(`    \u2514\u2500 Expected: ${issue.expected}`);
+      out.push(`    \u2514\u2500 Input: ${inputStr}`);
+      return out;
+    }
+    if (isInvalidFormat(issue)) {
+      out.push(`    \u2514\u2500 Format: ${issue.format}`);
+      if ("pattern" in issue && issue.pattern) {
+        out.push(`    \u2514\u2500 Pattern: ${issue.pattern}`);
+      }
+      out.push(`    \u2514\u2500 Input: ${inputStr}`);
+      return out;
+    }
+    if (isTooSmall(issue)) {
+      out.push(`    \u2514\u2500 Minimum: ${issue.minimum}`);
+      out.push(`    \u2514\u2500 Inclusive: ${issue.inclusive ?? false}`);
+      if (issue.exact) out.push(`    \u2514\u2500 Exact value required`);
+      out.push(`    \u2514\u2500 Input: ${inputStr}`);
+      return out;
+    }
+    if (isTooBig(issue)) {
+      out.push(`    \u2514\u2500 Maximum: ${issue.maximum}`);
+      out.push(`    \u2514\u2500 Inclusive: ${issue.inclusive ?? false}`);
+      if (issue.exact) out.push(`    \u2514\u2500 Exact value required`);
+      out.push(`    \u2514\u2500 Input: ${inputStr}`);
+      return out;
+    }
+    if (isNotMultipleOf(issue)) {
+      out.push(`    \u2514\u2500 Divisor: ${issue.divisor}`);
+      out.push(`    \u2514\u2500 Input: ${inputStr}`);
+      return out;
+    }
+    if (isUnrecognizedKeys(issue)) {
+      out.push(`    \u2514\u2500 Unrecognized keys: ${issue.keys.join(", ")}`);
+      return out;
+    }
+    if (isInvalidUnion(issue)) {
+      out.push(`    \u2514\u2500 Invalid union`);
+      if (issue.discriminator) {
+        out.push(`    \u2514\u2500 Discriminator: ${issue.discriminator}`);
+      }
+      out.push(`    \u2514\u2500 Input: ${inputStr}`);
+      return out;
+    }
+    if (isInvalidKey(issue)) {
+      out.push(`    \u2514\u2500 Invalid map/record key`);
+      out.push(`    \u2514\u2500 Input: ${inputStr}`);
+      return out;
+    }
+    if (isInvalidElement(issue)) {
+      out.push(`    \u2514\u2500 Invalid element in map/set`);
+      out.push(`    \u2514\u2500 Input: ${inputStr}`);
+      return out;
+    }
+    if (isInvalidValue(issue)) {
+      out.push(`    \u2514\u2500 Invalid value: ${issue.values.join(", ")}`);
+      out.push(`    \u2514\u2500 Input: ${inputStr}`);
+      return out;
+    }
+    if (isCustomIssue(issue)) {
+      out.push(`    \u2514\u2500 Custom validation error`);
+      if ("params" in issue && issue.params) {
+        out.push(`    \u2514\u2500 Params: ${JSON.stringify(issue.params)}`);
+      }
+      out.push(`    \u2514\u2500 Input: ${inputStr}`);
+      return out;
+    }
+    out.push(`    \u2514\u2500 [Unhandled Zod issue type]`);
+    return out;
   }
 };
 ZodValidationPipe = __decorateClass([
@@ -574,6 +630,6 @@ function setupSwagger(app, options) {
   });
 }
 
-export { AllExceptionsFilter, ApiCommonResponses, ApiErrorResponse, ApiPaginatedResponse, ApiSuccessResponse, HttpExceptionFilter, LoggingInterceptor, MAX_ITEMS_PER_PAGE, ZodBody, ZodParam, ZodQuery, ZodValidationPipe, apiResponseDecoratorOptionsSchema, apiResponseMetaSchema, authenticatedUserSchema, calculatePaginationMeta, createApiResponseSchema, createPaginatedResult, createPaginatedResultSchema, errorResponseSchema, extractUuids, generateUniqueSlug, idParamSchema, isValidSlug, isValidUuid, isValidUuidV4, normalizePagination, offsetPaginationSchema, optionalSlugSchema, optionalUuidSchema, paginationMetaSchema, paginationParamsSchema, paginationQueryCoerceSchema, paginationQuerySchema, setupSwagger, slugParamSchema, slugSchema, slugify, swaggerSetupOptionsSchema, swaggerUiOptionsSchema, toOffsetPagination, uuidArraySchema, uuidSchema, uuidV4Schema };
+export { AllExceptionsFilter, ApiCommonResponses, ApiErrorResponse, ApiPaginatedResponse, ApiSuccessResponse, HttpExceptionFilter, LoggingInterceptor, MAX_ITEMS_PER_PAGE, ZodBody, ZodParam, ZodQuery, ZodValidationPipe, apiResponseDecoratorOptionsSchema, apiResponseMetaSchema, authenticatedUserSchema, calculatePaginationMeta, createApiResponseSchema, createPaginatedResult, createPaginatedResultSchema, errorResponseSchema, extractUuids, generateUniqueSlug, idParamSchema, isCustomIssue, isInvalidElement, isInvalidFormat, isInvalidKey, isInvalidType, isInvalidUnion, isInvalidValue, isNotMultipleOf, isTooBig, isTooSmall, isUnrecognizedKeys, isValidSlug, isValidUuid, isValidUuidV4, normalizePagination, offsetPaginationSchema, optionalSlugSchema, optionalUuidSchema, paginationMetaSchema, paginationParamsSchema, paginationQueryCoerceSchema, paginationQuerySchema, readInput, setupSwagger, slugParamSchema, slugSchema, slugify, swaggerSetupOptionsSchema, swaggerUiOptionsSchema, toOffsetPagination, uuidArraySchema, uuidSchema, uuidV4Schema };
 //# sourceMappingURL=index.mjs.map
 //# sourceMappingURL=index.mjs.map

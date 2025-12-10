@@ -1,5 +1,5 @@
 import { Body } from '@nestjs/common';
-import type { ZodSchema } from 'zod';
+import { ZodType } from 'zod';
 import { ZodValidationPipe } from '../pipes/zod-validation.pipe.js';
 
 /**
@@ -22,7 +22,7 @@ import { ZodValidationPipe } from '../pipes/zod-validation.pipe.js';
  *
  * // Define your schema
  * const createUserSchema = z.object({
- *   email: z.string().email(),
+ *   email: z.email(),
  *   name: z.string().min(1),
  *   age: z.number().int().min(18).optional(),
  * });
@@ -42,6 +42,6 @@ import { ZodValidationPipe } from '../pipes/zod-validation.pipe.js';
  * }
  * ```
  */
-export function ZodBody(schema: ZodSchema, schemaName?: string): ParameterDecorator {
+export function ZodBody(schema: ZodType, schemaName?: string): ParameterDecorator {
 	return Body(new ZodValidationPipe(schema, schemaName));
 }

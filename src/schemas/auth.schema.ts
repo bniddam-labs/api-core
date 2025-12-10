@@ -23,7 +23,7 @@ export const authenticatedUserSchema = z.object({
 	/** User unique identifier (UUID) */
 	id: uuidSchema,
 	/** User email address */
-	email: z.string().email().optional(),
+	email: z.email().optional(),
 });
 
 /**

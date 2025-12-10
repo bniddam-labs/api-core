@@ -1,4 +1,4 @@
-import { z, ZodSchema } from 'zod';
+import { z, ZodType, ZodIssue, ZodTypeAny } from 'zod';
 import { ExceptionFilter, ArgumentsHost, HttpException, NestInterceptor, ExecutionContext, CallHandler, PipeTransform, ArgumentMetadata, Type, INestApplication } from '@nestjs/common';
 import { Request } from 'express';
 import { Observable } from 'rxjs';
@@ -21,7 +21,7 @@ declare const optionalUuidSchema: z.ZodNullable<z.ZodOptional<z.ZodString>>;
 /**
  * Array of UUIDs
  */
-declare const uuidArraySchema: z.ZodArray<z.ZodString, "many">;
+declare const uuidArraySchema: z.ZodArray<z.ZodString>;
 /**
  * Slug validation (lowercase alphanumeric with hyphens)
  *
@@ -42,11 +42,7 @@ declare const optionalSlugSchema: z.ZodNullable<z.ZodOptional<z.ZodString>>;
  */
 declare const idParamSchema: z.ZodObject<{
     id: z.ZodString;
-}, "strip", z.ZodTypeAny, {
-    id: string;
-}, {
-    id: string;
-}>;
+}, z.core.$strip>;
 /**
  * Type inference for ID parameter
  */
@@ -61,11 +57,7 @@ type IdParam = z.infer<typeof idParamSchema>;
  */
 declare const slugParamSchema: z.ZodObject<{
     slug: z.ZodString;
-}, "strip", z.ZodTypeAny, {
-    slug: string;
-}, {
-    slug: string;
-}>;
+}, z.core.$strip>;
 /**
  * Type inference for slug parameter
  */
@@ -98,13 +90,7 @@ type ApiResponseMeta = z.infer<typeof apiResponseMetaSchema>;
 declare const createApiResponseSchema: <T extends z.ZodTypeAny>(dataSchema: T) => z.ZodObject<{
     data: T;
     meta: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-}, "strip", z.ZodTypeAny, z.objectUtil.addQuestionMarks<z.baseObjectOutputType<{
-    data: T;
-    meta: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-}>, any> extends infer T_1 ? { [k in keyof T_1]: T_1[k]; } : never, z.baseObjectInputType<{
-    data: T;
-    meta: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-}> extends infer T_2 ? { [k_1 in keyof T_2]: T_2[k_1]; } : never>;
+}, z.core.$strip>;
 /**
  * Standard error response schema
  * Used across all API endpoints for consistent error handling
@@ -122,33 +108,13 @@ declare const createApiResponseSchema: <T extends z.ZodTypeAny>(dataSchema: T) =
  * ```
  */
 declare const errorResponseSchema: z.ZodObject<{
-    /** HTTP status code */
     statusCode: z.ZodNumber;
-    /** Error message (string or array of strings for validation errors) */
-    message: z.ZodUnion<[z.ZodString, z.ZodArray<z.ZodString, "many">]>;
-    /** Error type/name */
+    message: z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>;
     error: z.ZodString;
-    /** ISO timestamp when the error occurred */
     timestamp: z.ZodOptional<z.ZodString>;
-    /** Request path that caused the error */
     path: z.ZodOptional<z.ZodString>;
-    /** HTTP method used */
     method: z.ZodOptional<z.ZodString>;
-}, "strip", z.ZodTypeAny, {
-    message: string | string[];
-    statusCode: number;
-    error: string;
-    path?: string | undefined;
-    timestamp?: string | undefined;
-    method?: string | undefined;
-}, {
-    message: string | string[];
-    statusCode: number;
-    error: string;
-    path?: string | undefined;
-    timestamp?: string | undefined;
-    method?: string | undefined;
-}>;
+}, z.core.$strip>;
 /**
  * Type inference for error response
  */
@@ -166,17 +132,9 @@ type ErrorResponse = z.infer<typeof errorResponseSchema>;
  * ```
  */
 declare const paginationParamsSchema: z.ZodObject<{
-    /** Page number (1-indexed) */
     page: z.ZodNumber;
-    /** Items per page */
     limit: z.ZodNumber;
-}, "strip", z.ZodTypeAny, {
-    page: number;
-    limit: number;
-}, {
-    page: number;
-    limit: number;
-}>;
+}, z.core.$strip>;
 /**
  * Type inference for pagination parameters
  */
@@ -190,17 +148,9 @@ type PaginationParams = z.infer<typeof paginationParamsSchema>;
  * ```
  */
 declare const offsetPaginationSchema: z.ZodObject<{
-    /** Number of items to skip */
     offset: z.ZodNumber;
-    /** Number of items to take */
     limit: z.ZodNumber;
-}, "strip", z.ZodTypeAny, {
-    limit: number;
-    offset: number;
-}, {
-    limit: number;
-    offset: number;
-}>;
+}, z.core.$strip>;
 /**
  * Type inference for offset pagination
  */
@@ -221,33 +171,13 @@ type OffsetPagination = z.infer<typeof offsetPaginationSchema>;
  * ```
  */
 declare const paginationMetaSchema: z.ZodObject<{
-    /** Current page number */
     page: z.ZodNumber;
-    /** Items per page */
     limit: z.ZodNumber;
-    /** Total number of items across all pages */
     total: z.ZodNumber;
-    /** Total number of pages */
     totalPages: z.ZodNumber;
-    /** Whether there is a next page */
     hasNextPage: z.ZodBoolean;
-    /** Whether there is a previous page */
     hasPreviousPage: z.ZodBoolean;
-}, "strip", z.ZodTypeAny, {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-}, {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-}>;
+}, z.core.$strip>;
 /**
  * Type inference for pagination metadata
  */
@@ -265,58 +195,16 @@ type PaginationMeta = z.infer<typeof paginationMetaSchema>;
  * ```
  */
 declare const createPaginatedResultSchema: <T extends z.ZodTypeAny>(dataSchema: T) => z.ZodObject<{
-    /** Array of data items */
-    data: z.ZodArray<T, "many">;
-    /** Pagination metadata */
+    data: z.ZodArray<T>;
     meta: z.ZodObject<{
-        /** Current page number */
         page: z.ZodNumber;
-        /** Items per page */
         limit: z.ZodNumber;
-        /** Total number of items across all pages */
         total: z.ZodNumber;
-        /** Total number of pages */
         totalPages: z.ZodNumber;
-        /** Whether there is a next page */
         hasNextPage: z.ZodBoolean;
-        /** Whether there is a previous page */
         hasPreviousPage: z.ZodBoolean;
-    }, "strip", z.ZodTypeAny, {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-        hasNextPage: boolean;
-        hasPreviousPage: boolean;
-    }, {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-        hasNextPage: boolean;
-        hasPreviousPage: boolean;
-    }>;
-}, "strip", z.ZodTypeAny, {
-    data: T["_output"][];
-    meta: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-        hasNextPage: boolean;
-        hasPreviousPage: boolean;
-    };
-}, {
-    data: T["_input"][];
-    meta: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-        hasNextPage: boolean;
-        hasPreviousPage: boolean;
-    };
-}>;
+    }, z.core.$strip>;
+}, z.core.$strip>;
 /**
  * Maximum items per page (used across all pagination schemas)
  */
@@ -338,28 +226,14 @@ declare const MAX_ITEMS_PER_PAGE = 100;
  */
 declare const paginationQuerySchema: z.ZodObject<{
     page: z.ZodNumber;
-} & {
     limit: z.ZodNumber;
-} & {
-    /** Search term to filter results */
     search: z.ZodOptional<z.ZodString>;
-    /** Field to sort by */
     sortBy: z.ZodOptional<z.ZodString>;
-    /** Sort direction */
-    sortOrder: z.ZodDefault<z.ZodOptional<z.ZodEnum<["ASC", "DESC"]>>>;
-}, "strip", z.ZodTypeAny, {
-    page: number;
-    limit: number;
-    sortOrder: "ASC" | "DESC";
-    search?: string | undefined;
-    sortBy?: string | undefined;
-}, {
-    page: number;
-    limit: number;
-    search?: string | undefined;
-    sortBy?: string | undefined;
-    sortOrder?: "ASC" | "DESC" | undefined;
-}>;
+    sortOrder: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+        ASC: "ASC";
+        DESC: "DESC";
+    }>>>;
+}, z.core.$strip>;
 /**
  * Type inference for pagination query
  */
@@ -375,29 +249,15 @@ type PaginationQuery = z.infer<typeof paginationQuerySchema>;
  * ```
  */
 declare const paginationQueryCoerceSchema: z.ZodObject<{
-    /** Page number (coerced from string, defaults to 1) */
-    page: z.ZodDefault<z.ZodNumber>;
-    /** Items per page (coerced from string, max 100, defaults to 10) */
-    limit: z.ZodDefault<z.ZodNumber>;
-    /** Search term */
+    page: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
+    limit: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
     search: z.ZodOptional<z.ZodString>;
-    /** Field to sort by */
     sortBy: z.ZodOptional<z.ZodString>;
-    /** Sort direction */
-    sortOrder: z.ZodDefault<z.ZodOptional<z.ZodEnum<["ASC", "DESC"]>>>;
-}, "strip", z.ZodTypeAny, {
-    page: number;
-    limit: number;
-    sortOrder: "ASC" | "DESC";
-    search?: string | undefined;
-    sortBy?: string | undefined;
-}, {
-    page?: number | undefined;
-    limit?: number | undefined;
-    search?: string | undefined;
-    sortBy?: string | undefined;
-    sortOrder?: "ASC" | "DESC" | undefined;
-}>;
+    sortOrder: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+        ASC: "ASC";
+        DESC: "DESC";
+    }>>>;
+}, z.core.$strip>;
 /**
  * Type inference for coerced pagination query
  */
@@ -417,17 +277,9 @@ type PaginationQueryCoerce = z.infer<typeof paginationQueryCoerceSchema>;
  * ```
  */
 declare const authenticatedUserSchema: z.ZodObject<{
-    /** User unique identifier (UUID) */
     id: z.ZodString;
-    /** User email address */
-    email: z.ZodOptional<z.ZodString>;
-}, "strip", z.ZodTypeAny, {
-    id: string;
-    email?: string | undefined;
-}, {
-    id: string;
-    email?: string | undefined;
-}>;
+    email: z.ZodOptional<z.ZodEmail>;
+}, z.core.$strip>;
 /**
  * Type inference for authenticated user
  */
@@ -616,7 +468,7 @@ declare function isValidSlug(value: string): boolean;
  *
  * // Define your schema
  * const createUserSchema = z.object({
- *   email: z.string().email(),
+ *   email: z.email(),
  *   name: z.string().min(1),
  *   age: z.number().int().min(18).optional(),
  * });
@@ -636,7 +488,7 @@ declare function isValidSlug(value: string): boolean;
  * }
  * ```
  */
-declare function ZodBody(schema: ZodSchema, schemaName?: string): ParameterDecorator;
+declare function ZodBody(schema: ZodType, schemaName?: string): ParameterDecorator;
 
 /**
  * Custom decorator that combines @Param and Zod validation.
@@ -671,7 +523,7 @@ declare function ZodBody(schema: ZodSchema, schemaName?: string): ParameterDecor
  * }
  * ```
  */
-declare function ZodParam(schema: ZodSchema, schemaName?: string): ParameterDecorator;
+declare function ZodParam(schema: ZodType, schemaName?: string): ParameterDecorator;
 
 /**
  * Custom decorator that combines @Query and Zod validation.
@@ -709,7 +561,7 @@ declare function ZodParam(schema: ZodSchema, schemaName?: string): ParameterDeco
  * }
  * ```
  */
-declare function ZodQuery(schema: ZodSchema, schemaName?: string): ParameterDecorator;
+declare function ZodQuery(schema: ZodType, schemaName?: string): ParameterDecorator;
 
 /**
  * Global exception filter that catches all uncaught exceptions
@@ -763,94 +615,59 @@ declare class LoggingInterceptor implements NestInterceptor {
     intercept(context: ExecutionContext, next: CallHandler): Observable<unknown>;
 }
 
-/**
- * Zod validation pipe for NestJS
- *
- * Validates request data against Zod schemas and returns user-friendly error messages.
- * In development mode, logs detailed validation errors to the console for easier debugging.
- *
- * @example
- * // Direct usage in controller
- * ```typescript
- * import { z } from 'zod';
- *
- * const loginSchema = z.object({
- *   email: z.string().email(),
- *   password: z.string().min(8),
- * });
- *
- * type LoginDto = z.infer<typeof loginSchema>;
- *
- * @Post('login')
- * @UsePipes(new ZodValidationPipe(loginSchema, 'loginSchema'))
- * async login(@Body() dto: LoginDto) {
- *   return this.authService.login(dto);
- * }
- * ```
- *
- * @example
- * // Usage with custom decorator (recommended)
- * ```typescript
- * import { ZodBody } from '@bniddam-labs/api-core/nestjs';
- * import { z } from 'zod';
- *
- * const loginSchema = z.object({
- *   email: z.string().email(),
- *   password: z.string().min(8),
- * });
- *
- * type LoginDto = z.infer<typeof loginSchema>;
- *
- * @Post('login')
- * async login(@ZodBody(loginSchema) dto: LoginDto) {
- *   return this.authService.login(dto);
- * }
- * ```
- */
+declare const isInvalidType: (issue: ZodIssue) => issue is Extract<ZodIssue, {
+    code: "invalid_type";
+}>;
+declare const isInvalidFormat: (issue: ZodIssue) => issue is Extract<ZodIssue, {
+    code: "invalid_format";
+}>;
+declare const isTooSmall: (issue: ZodIssue) => issue is Extract<ZodIssue, {
+    code: "too_small";
+}>;
+declare const isTooBig: (issue: ZodIssue) => issue is Extract<ZodIssue, {
+    code: "too_big";
+}>;
+declare const isNotMultipleOf: (issue: ZodIssue) => issue is Extract<ZodIssue, {
+    code: "not_multiple_of";
+}>;
+declare const isUnrecognizedKeys: (issue: ZodIssue) => issue is Extract<ZodIssue, {
+    code: "unrecognized_keys";
+}>;
+declare const isInvalidUnion: (issue: ZodIssue) => issue is Extract<ZodIssue, {
+    code: "invalid_union";
+}>;
+declare const isInvalidKey: (issue: ZodIssue) => issue is Extract<ZodIssue, {
+    code: "invalid_key";
+}>;
+declare const isInvalidElement: (issue: ZodIssue) => issue is Extract<ZodIssue, {
+    code: "invalid_element";
+}>;
+declare const isInvalidValue: (issue: ZodIssue) => issue is Extract<ZodIssue, {
+    code: "invalid_value";
+}>;
+declare const isCustomIssue: (issue: ZodIssue) => issue is Extract<ZodIssue, {
+    code: "custom";
+}>;
+declare function readInput(issue: ZodIssue): string;
 declare class ZodValidationPipe implements PipeTransform {
     private readonly schema;
     private readonly schemaName?;
     private readonly logger;
-    /**
-     * @param schema - Zod schema to validate against
-     * @param schemaName - Optional name of the schema for better logging (e.g., 'loginSchema', 'registerUserSchema')
-     */
-    constructor(schema: ZodSchema, schemaName?: string | undefined);
-    transform(value: unknown, _metadata: ArgumentMetadata): any;
-    /**
-     * Type guard to check if error is a ZodError
-     */
-    private isZodError;
-    /**
-     * Log detailed Zod validation errors in development mode
-     * This provides comprehensive error information without affecting the HTTP response
-     */
+    constructor(schema: ZodTypeAny, schemaName?: string | undefined);
+    transform(value: unknown, metadata: ArgumentMetadata): unknown;
     private logZodValidationError;
+    private formatIssue;
 }
 
 /**
  * Zod schema for API response decorator options
  */
 declare const apiResponseDecoratorOptionsSchema: z.ZodObject<{
-    /** HTTP status code */
     status: z.ZodNumber;
-    /** Response description */
     description: z.ZodString;
-    /** Response type/DTO class */
-    type: z.ZodOptional<z.ZodType<Type<unknown>, z.ZodTypeDef, Type<unknown>>>;
-    /** Whether the response is an array */
+    type: z.ZodOptional<z.ZodCustom<Type<unknown>, Type<unknown>>>;
     isArray: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
-}, "strip", z.ZodTypeAny, {
-    status: number;
-    description: string;
-    isArray: boolean;
-    type?: Type<unknown> | undefined;
-}, {
-    status: number;
-    description: string;
-    type?: Type<unknown> | undefined;
-    isArray?: boolean | undefined;
-}>;
+}, z.core.$strip>;
 /**
  * Options for API response decorator
  */
@@ -939,85 +756,27 @@ declare function ApiPaginatedResponse(dataType: Type<unknown>, description: stri
  * Zod schema for Swagger UI options
  */
 declare const swaggerUiOptionsSchema: z.ZodObject<{
-    /** Persist authorization data in browser @default true */
     persistAuthorization: z.ZodOptional<z.ZodBoolean>;
-    /** Display request duration in responses @default true */
     displayRequestDuration: z.ZodOptional<z.ZodBoolean>;
-    /** Sort tags alphabetically @default 'alpha' */
-    tagsSorter: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"alpha">, z.ZodFunction<z.ZodTuple<[], z.ZodUnknown>, z.ZodUnknown>]>>;
-    /** Sort operations alphabetically @default 'alpha' */
-    operationsSorter: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"alpha">, z.ZodLiteral<"method">, z.ZodFunction<z.ZodTuple<[], z.ZodUnknown>, z.ZodUnknown>]>>;
-}, "strip", z.ZodTypeAny, {
-    persistAuthorization?: boolean | undefined;
-    displayRequestDuration?: boolean | undefined;
-    tagsSorter?: "alpha" | ((...args: unknown[]) => unknown) | undefined;
-    operationsSorter?: "method" | "alpha" | ((...args: unknown[]) => unknown) | undefined;
-}, {
-    persistAuthorization?: boolean | undefined;
-    displayRequestDuration?: boolean | undefined;
-    tagsSorter?: "alpha" | ((...args: unknown[]) => unknown) | undefined;
-    operationsSorter?: "method" | "alpha" | ((...args: unknown[]) => unknown) | undefined;
-}>;
+    tagsSorter: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"alpha">, z.ZodFunction<z.core.$ZodFunctionArgs, z.core.$ZodFunctionOut>]>>;
+    operationsSorter: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"alpha">, z.ZodLiteral<"method">, z.ZodFunction<z.core.$ZodFunctionArgs, z.core.$ZodFunctionOut>]>>;
+}, z.core.$strip>;
 /**
  * Zod schema for Swagger/OpenAPI setup options
  */
 declare const swaggerSetupOptionsSchema: z.ZodObject<{
-    /** API title shown in Swagger UI @default 'API Documentation' */
     title: z.ZodOptional<z.ZodString>;
-    /** API description @default 'REST API documentation' */
     description: z.ZodOptional<z.ZodString>;
-    /** API version @default '1.0' */
     version: z.ZodOptional<z.ZodString>;
-    /** Path where Swagger UI will be available @default 'api' */
     path: z.ZodOptional<z.ZodString>;
-    /** Whether to add Bearer authentication support @default true */
     addBearerAuth: z.ZodOptional<z.ZodBoolean>;
-    /** Custom Swagger UI options */
     swaggerUiOptions: z.ZodOptional<z.ZodObject<{
-        /** Persist authorization data in browser @default true */
         persistAuthorization: z.ZodOptional<z.ZodBoolean>;
-        /** Display request duration in responses @default true */
         displayRequestDuration: z.ZodOptional<z.ZodBoolean>;
-        /** Sort tags alphabetically @default 'alpha' */
-        tagsSorter: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"alpha">, z.ZodFunction<z.ZodTuple<[], z.ZodUnknown>, z.ZodUnknown>]>>;
-        /** Sort operations alphabetically @default 'alpha' */
-        operationsSorter: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"alpha">, z.ZodLiteral<"method">, z.ZodFunction<z.ZodTuple<[], z.ZodUnknown>, z.ZodUnknown>]>>;
-    }, "strip", z.ZodTypeAny, {
-        persistAuthorization?: boolean | undefined;
-        displayRequestDuration?: boolean | undefined;
-        tagsSorter?: "alpha" | ((...args: unknown[]) => unknown) | undefined;
-        operationsSorter?: "method" | "alpha" | ((...args: unknown[]) => unknown) | undefined;
-    }, {
-        persistAuthorization?: boolean | undefined;
-        displayRequestDuration?: boolean | undefined;
-        tagsSorter?: "alpha" | ((...args: unknown[]) => unknown) | undefined;
-        operationsSorter?: "method" | "alpha" | ((...args: unknown[]) => unknown) | undefined;
-    }>>;
-}, "strip", z.ZodTypeAny, {
-    path?: string | undefined;
-    description?: string | undefined;
-    title?: string | undefined;
-    version?: string | undefined;
-    addBearerAuth?: boolean | undefined;
-    swaggerUiOptions?: {
-        persistAuthorization?: boolean | undefined;
-        displayRequestDuration?: boolean | undefined;
-        tagsSorter?: "alpha" | ((...args: unknown[]) => unknown) | undefined;
-        operationsSorter?: "method" | "alpha" | ((...args: unknown[]) => unknown) | undefined;
-    } | undefined;
-}, {
-    path?: string | undefined;
-    description?: string | undefined;
-    title?: string | undefined;
-    version?: string | undefined;
-    addBearerAuth?: boolean | undefined;
-    swaggerUiOptions?: {
-        persistAuthorization?: boolean | undefined;
-        displayRequestDuration?: boolean | undefined;
-        tagsSorter?: "alpha" | ((...args: unknown[]) => unknown) | undefined;
-        operationsSorter?: "method" | "alpha" | ((...args: unknown[]) => unknown) | undefined;
-    } | undefined;
-}>;
+        tagsSorter: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"alpha">, z.ZodFunction<z.core.$ZodFunctionArgs, z.core.$ZodFunctionOut>]>>;
+        operationsSorter: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"alpha">, z.ZodLiteral<"method">, z.ZodFunction<z.core.$ZodFunctionArgs, z.core.$ZodFunctionOut>]>>;
+    }, z.core.$strip>>;
+}, z.core.$strip>;
 /**
  * Configuration options for Swagger/OpenAPI setup
  */
@@ -1055,4 +814,4 @@ type SwaggerSetupOptions = z.infer<typeof swaggerSetupOptionsSchema>;
  */
 declare function setupSwagger(app: INestApplication, options?: SwaggerSetupOptions): void;
 
-export { AllExceptionsFilter, ApiCommonResponses, ApiErrorResponse, ApiPaginatedResponse, type ApiResponse, type ApiResponseDecoratorOptions, type ApiResponseMeta, ApiSuccessResponse, type AuthenticatedRequest, type AuthenticatedUser, type ErrorResponse, HttpExceptionFilter, type IdParam, LoggingInterceptor, MAX_ITEMS_PER_PAGE, type OffsetPagination, type PaginatedResult, type PaginationMeta, type PaginationParams, type PaginationQuery, type PaginationQueryCoerce, type SlugParam, type SwaggerSetupOptions, ZodBody, ZodParam, ZodQuery, ZodValidationPipe, apiResponseDecoratorOptionsSchema, apiResponseMetaSchema, authenticatedUserSchema, calculatePaginationMeta, createApiResponseSchema, createPaginatedResult, createPaginatedResultSchema, errorResponseSchema, extractUuids, generateUniqueSlug, idParamSchema, isValidSlug, isValidUuid, isValidUuidV4, normalizePagination, offsetPaginationSchema, optionalSlugSchema, optionalUuidSchema, paginationMetaSchema, paginationParamsSchema, paginationQueryCoerceSchema, paginationQuerySchema, setupSwagger, slugParamSchema, slugSchema, slugify, swaggerSetupOptionsSchema, swaggerUiOptionsSchema, toOffsetPagination, uuidArraySchema, uuidSchema, uuidV4Schema };
+export { AllExceptionsFilter, ApiCommonResponses, ApiErrorResponse, ApiPaginatedResponse, type ApiResponse, type ApiResponseDecoratorOptions, type ApiResponseMeta, ApiSuccessResponse, type AuthenticatedRequest, type AuthenticatedUser, type ErrorResponse, HttpExceptionFilter, type IdParam, LoggingInterceptor, MAX_ITEMS_PER_PAGE, type OffsetPagination, type PaginatedResult, type PaginationMeta, type PaginationParams, type PaginationQuery, type PaginationQueryCoerce, type SlugParam, type SwaggerSetupOptions, ZodBody, ZodParam, ZodQuery, ZodValidationPipe, apiResponseDecoratorOptionsSchema, apiResponseMetaSchema, authenticatedUserSchema, calculatePaginationMeta, createApiResponseSchema, createPaginatedResult, createPaginatedResultSchema, errorResponseSchema, extractUuids, generateUniqueSlug, idParamSchema, isCustomIssue, isInvalidElement, isInvalidFormat, isInvalidKey, isInvalidType, isInvalidUnion, isInvalidValue, isNotMultipleOf, isTooBig, isTooSmall, isUnrecognizedKeys, isValidSlug, isValidUuid, isValidUuidV4, normalizePagination, offsetPaginationSchema, optionalSlugSchema, optionalUuidSchema, paginationMetaSchema, paginationParamsSchema, paginationQueryCoerceSchema, paginationQuerySchema, readInput, setupSwagger, slugParamSchema, slugSchema, slugify, swaggerSetupOptionsSchema, swaggerUiOptionsSchema, toOffsetPagination, uuidArraySchema, uuidSchema, uuidV4Schema };
