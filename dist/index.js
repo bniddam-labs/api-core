@@ -577,6 +577,64 @@ function ApiPaginatedResponse(dataType, description) {
     }
   });
 }
+function ApiZodBody(schema, description) {
+  const jsonSchema = zod.z.toJSONSchema(schema, { target: "openapi-3.0" });
+  return common.applyDecorators(
+    swagger.ApiBody({
+      description: description || "Request body",
+      schema: jsonSchema
+    })
+  );
+}
+function ApiZodQuery(schema) {
+  const jsonSchema = zod.z.toJSONSchema(schema, { target: "openapi-3.0" });
+  if (jsonSchema.type !== "object" || !jsonSchema.properties) {
+    throw new Error("ApiZodQuery requires a Zod object schema");
+  }
+  const decorators = [];
+  const properties = jsonSchema.properties;
+  const required = jsonSchema.required || [];
+  for (const [key, propertySchema] of Object.entries(properties)) {
+    const isRequired = required.includes(key);
+    const fieldDescription = propertySchema.description || `Query parameter: ${key}`;
+    const example = propertySchema.default !== void 0 ? propertySchema.default : void 0;
+    const cleanSchema = { ...propertySchema };
+    delete cleanSchema.description;
+    decorators.push(
+      swagger.ApiQuery({
+        name: key,
+        required: isRequired,
+        description: fieldDescription,
+        schema: cleanSchema,
+        ...example !== void 0 && { example }
+      })
+    );
+  }
+  return common.applyDecorators(...decorators);
+}
+function ApiZodParam(schema) {
+  const jsonSchema = zod.z.toJSONSchema(schema, { target: "openapi-3.0" });
+  if (jsonSchema.type !== "object" || !jsonSchema.properties) {
+    throw new Error("ApiZodParam requires a Zod object schema");
+  }
+  const decorators = [];
+  const properties = jsonSchema.properties;
+  for (const [key, propertySchema] of Object.entries(properties)) {
+    const fieldDescription = propertySchema.description || `Path parameter: ${key}`;
+    const cleanSchema = { ...propertySchema };
+    delete cleanSchema.description;
+    decorators.push(
+      swagger.ApiParam({
+        name: key,
+        required: true,
+        // Path parameters are always required
+        description: fieldDescription,
+        schema: cleanSchema
+      })
+    );
+  }
+  return common.applyDecorators(...decorators);
+}
 var swaggerUiOptionsSchema = zod.z.object({
   /** Persist authorization data in browser @default true */
   persistAuthorization: zod.z.boolean().optional(),
@@ -636,6 +694,9 @@ exports.ApiCommonResponses = ApiCommonResponses;
 exports.ApiErrorResponse = ApiErrorResponse;
 exports.ApiPaginatedResponse = ApiPaginatedResponse;
 exports.ApiSuccessResponse = ApiSuccessResponse;
+exports.ApiZodBody = ApiZodBody;
+exports.ApiZodParam = ApiZodParam;
+exports.ApiZodQuery = ApiZodQuery;
 exports.MAX_ITEMS_PER_PAGE = MAX_ITEMS_PER_PAGE;
 exports.ZodBody = ZodBody;
 exports.ZodParam = ZodParam;

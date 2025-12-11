@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { Injectable, Catch, HttpException, Logger, BadRequestException, Body, Param, Query, HttpStatus, applyDecorators } from '@nestjs/common';
 import { ConsoleLogger } from '@bniddam-labs/core';
 import { tap } from 'rxjs/operators';
-import { ApiResponse, DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ApiResponse, ApiBody, ApiQuery, ApiParam, DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __decorateClass = (decorators, target, key, kind) => {
@@ -575,6 +575,64 @@ function ApiPaginatedResponse(dataType, description) {
     }
   });
 }
+function ApiZodBody(schema, description) {
+  const jsonSchema = z.toJSONSchema(schema, { target: "openapi-3.0" });
+  return applyDecorators(
+    ApiBody({
+      description: description || "Request body",
+      schema: jsonSchema
+    })
+  );
+}
+function ApiZodQuery(schema) {
+  const jsonSchema = z.toJSONSchema(schema, { target: "openapi-3.0" });
+  if (jsonSchema.type !== "object" || !jsonSchema.properties) {
+    throw new Error("ApiZodQuery requires a Zod object schema");
+  }
+  const decorators = [];
+  const properties = jsonSchema.properties;
+  const required = jsonSchema.required || [];
+  for (const [key, propertySchema] of Object.entries(properties)) {
+    const isRequired = required.includes(key);
+    const fieldDescription = propertySchema.description || `Query parameter: ${key}`;
+    const example = propertySchema.default !== void 0 ? propertySchema.default : void 0;
+    const cleanSchema = { ...propertySchema };
+    delete cleanSchema.description;
+    decorators.push(
+      ApiQuery({
+        name: key,
+        required: isRequired,
+        description: fieldDescription,
+        schema: cleanSchema,
+        ...example !== void 0 && { example }
+      })
+    );
+  }
+  return applyDecorators(...decorators);
+}
+function ApiZodParam(schema) {
+  const jsonSchema = z.toJSONSchema(schema, { target: "openapi-3.0" });
+  if (jsonSchema.type !== "object" || !jsonSchema.properties) {
+    throw new Error("ApiZodParam requires a Zod object schema");
+  }
+  const decorators = [];
+  const properties = jsonSchema.properties;
+  for (const [key, propertySchema] of Object.entries(properties)) {
+    const fieldDescription = propertySchema.description || `Path parameter: ${key}`;
+    const cleanSchema = { ...propertySchema };
+    delete cleanSchema.description;
+    decorators.push(
+      ApiParam({
+        name: key,
+        required: true,
+        // Path parameters are always required
+        description: fieldDescription,
+        schema: cleanSchema
+      })
+    );
+  }
+  return applyDecorators(...decorators);
+}
 var swaggerUiOptionsSchema = z.object({
   /** Persist authorization data in browser @default true */
   persistAuthorization: z.boolean().optional(),
@@ -630,6 +688,6 @@ function setupSwagger(app, options) {
   });
 }
 
-export { AllExceptionsFilter, ApiCommonResponses, ApiErrorResponse, ApiPaginatedResponse, ApiSuccessResponse, HttpExceptionFilter, LoggingInterceptor, MAX_ITEMS_PER_PAGE, ZodBody, ZodParam, ZodQuery, ZodValidationPipe, apiResponseDecoratorOptionsSchema, apiResponseMetaSchema, authenticatedUserSchema, calculatePaginationMeta, createApiResponseSchema, createPaginatedResult, createPaginatedResultSchema, errorResponseSchema, extractUuids, generateUniqueSlug, idParamSchema, isCustomIssue, isInvalidElement, isInvalidFormat, isInvalidKey, isInvalidType, isInvalidUnion, isInvalidValue, isNotMultipleOf, isTooBig, isTooSmall, isUnrecognizedKeys, isValidSlug, isValidUuid, isValidUuidV4, normalizePagination, offsetPaginationSchema, optionalSlugSchema, optionalUuidSchema, paginationMetaSchema, paginationParamsSchema, paginationQueryCoerceSchema, paginationQuerySchema, readInput, setupSwagger, slugParamSchema, slugSchema, slugify, swaggerSetupOptionsSchema, swaggerUiOptionsSchema, toOffsetPagination, uuidArraySchema, uuidSchema, uuidV4Schema };
+export { AllExceptionsFilter, ApiCommonResponses, ApiErrorResponse, ApiPaginatedResponse, ApiSuccessResponse, ApiZodBody, ApiZodParam, ApiZodQuery, HttpExceptionFilter, LoggingInterceptor, MAX_ITEMS_PER_PAGE, ZodBody, ZodParam, ZodQuery, ZodValidationPipe, apiResponseDecoratorOptionsSchema, apiResponseMetaSchema, authenticatedUserSchema, calculatePaginationMeta, createApiResponseSchema, createPaginatedResult, createPaginatedResultSchema, errorResponseSchema, extractUuids, generateUniqueSlug, idParamSchema, isCustomIssue, isInvalidElement, isInvalidFormat, isInvalidKey, isInvalidType, isInvalidUnion, isInvalidValue, isNotMultipleOf, isTooBig, isTooSmall, isUnrecognizedKeys, isValidSlug, isValidUuid, isValidUuidV4, normalizePagination, offsetPaginationSchema, optionalSlugSchema, optionalUuidSchema, paginationMetaSchema, paginationParamsSchema, paginationQueryCoerceSchema, paginationQuerySchema, readInput, setupSwagger, slugParamSchema, slugSchema, slugify, swaggerSetupOptionsSchema, swaggerUiOptionsSchema, toOffsetPagination, uuidArraySchema, uuidSchema, uuidV4Schema };
 //# sourceMappingURL=index.mjs.map
 //# sourceMappingURL=index.mjs.map

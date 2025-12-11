@@ -753,6 +753,107 @@ declare function ApiCommonResponses(): <TFunction extends Function, Y>(target: T
 declare function ApiPaginatedResponse(dataType: Type<unknown>, description: string): MethodDecorator & ClassDecorator;
 
 /**
+ * Decorator for documenting request body with Zod schema in Swagger
+ * Automatically converts Zod schema to OpenAPI schema using z.toJSONSchema()
+ *
+ * Use this decorator along with @ZodBody for complete validation and documentation
+ *
+ * @param schema - The Zod schema for the request body
+ * @param description - Optional description of the request body
+ *
+ * @example
+ * ```typescript
+ * import { ZodBody, ApiZodBody } from '@bniddam-labs/api-core/nestjs';
+ * import { z } from 'zod';
+ *
+ * const createUserSchema = z.object({
+ *   email: z.string().email().describe('User email address'),
+ *   name: z.string().min(1).describe('User full name'),
+ *   age: z.number().int().min(18).optional().describe('User age'),
+ *   role: z.enum(['admin', 'user']).default('user'),
+ * });
+ *
+ * type CreateUserDto = z.infer<typeof createUserSchema>;
+ *
+ * @Post('users')
+ * @ApiZodBody(createUserSchema, 'User creation data')
+ * async create(@ZodBody(createUserSchema) dto: CreateUserDto) {
+ *   return this.usersService.create(dto);
+ * }
+ * ```
+ */
+declare function ApiZodBody(schema: ZodType, description?: string): <TFunction extends Function, Y>(target: TFunction | object, propertyKey?: string | symbol, descriptor?: TypedPropertyDescriptor<Y>) => void;
+/**
+ * Decorator for documenting query parameters with Zod schema in Swagger
+ * Automatically converts Zod object schema to individual query parameter definitions
+ *
+ * Use this decorator along with @ZodQuery for complete validation and documentation
+ *
+ * @param schema - The Zod object schema for query parameters
+ *
+ * @example
+ * ```typescript
+ * import { ZodQuery, ApiZodQuery } from '@bniddam-labs/api-core/nestjs';
+ * import { z } from 'zod';
+ *
+ * const searchQuerySchema = z.object({
+ *   q: z.string().min(1).describe('Search query'),
+ *   category: z.enum(['all', 'posts', 'users']).optional().default('all'),
+ *   page: z.coerce.number().int().min(1).default(1).describe('Page number'),
+ *   limit: z.coerce.number().int().min(1).max(100).default(10).describe('Items per page'),
+ * });
+ *
+ * type SearchQuery = z.infer<typeof searchQuerySchema>;
+ *
+ * @Get('search')
+ * @ApiZodQuery(searchQuerySchema)
+ * async search(@ZodQuery(searchQuerySchema) query: SearchQuery) {
+ *   return this.searchService.search(query);
+ * }
+ * ```
+ */
+declare function ApiZodQuery(schema: ZodType): <TFunction extends Function, Y>(target: TFunction | object, propertyKey?: string | symbol, descriptor?: TypedPropertyDescriptor<Y>) => void;
+/**
+ * Decorator for documenting path parameters with Zod schema in Swagger
+ * Automatically converts Zod object schema to individual path parameter definitions
+ *
+ * Use this decorator along with @ZodParam for complete validation and documentation
+ *
+ * @param schema - The Zod object schema for path parameters
+ *
+ * @example
+ * ```typescript
+ * import { ZodParam, ApiZodParam } from '@bniddam-labs/api-core/nestjs';
+ * import { z } from 'zod';
+ *
+ * const userIdParamSchema = z.object({
+ *   id: z.string().uuid().describe('User unique identifier'),
+ * });
+ *
+ * type UserIdParam = z.infer<typeof userIdParamSchema>;
+ *
+ * @Get('users/:id')
+ * @ApiZodParam(userIdParamSchema)
+ * async findOne(@ZodParam(userIdParamSchema) params: UserIdParam) {
+ *   return this.usersService.findOne(params.id);
+ * }
+ *
+ * // Multiple params
+ * const postParamsSchema = z.object({
+ *   userId: z.string().uuid().describe('User ID'),
+ *   postId: z.string().uuid().describe('Post ID'),
+ * });
+ *
+ * @Get('users/:userId/posts/:postId')
+ * @ApiZodParam(postParamsSchema)
+ * async findUserPost(@ZodParam(postParamsSchema) params: z.infer<typeof postParamsSchema>) {
+ *   return this.postsService.findUserPost(params.userId, params.postId);
+ * }
+ * ```
+ */
+declare function ApiZodParam(schema: ZodType): <TFunction extends Function, Y>(target: TFunction | object, propertyKey?: string | symbol, descriptor?: TypedPropertyDescriptor<Y>) => void;
+
+/**
  * Zod schema for Swagger UI options
  */
 declare const swaggerUiOptionsSchema: z.ZodObject<{
@@ -814,4 +915,4 @@ type SwaggerSetupOptions = z.infer<typeof swaggerSetupOptionsSchema>;
  */
 declare function setupSwagger(app: INestApplication, options?: SwaggerSetupOptions): void;
 
-export { AllExceptionsFilter, ApiCommonResponses, ApiErrorResponse, ApiPaginatedResponse, type ApiResponse, type ApiResponseDecoratorOptions, type ApiResponseMeta, ApiSuccessResponse, type AuthenticatedRequest, type AuthenticatedUser, type ErrorResponse, HttpExceptionFilter, type IdParam, LoggingInterceptor, MAX_ITEMS_PER_PAGE, type OffsetPagination, type PaginatedResult, type PaginationMeta, type PaginationParams, type PaginationQuery, type PaginationQueryCoerce, type SlugParam, type SwaggerSetupOptions, ZodBody, ZodParam, ZodQuery, ZodValidationPipe, apiResponseDecoratorOptionsSchema, apiResponseMetaSchema, authenticatedUserSchema, calculatePaginationMeta, createApiResponseSchema, createPaginatedResult, createPaginatedResultSchema, errorResponseSchema, extractUuids, generateUniqueSlug, idParamSchema, isCustomIssue, isInvalidElement, isInvalidFormat, isInvalidKey, isInvalidType, isInvalidUnion, isInvalidValue, isNotMultipleOf, isTooBig, isTooSmall, isUnrecognizedKeys, isValidSlug, isValidUuid, isValidUuidV4, normalizePagination, offsetPaginationSchema, optionalSlugSchema, optionalUuidSchema, paginationMetaSchema, paginationParamsSchema, paginationQueryCoerceSchema, paginationQuerySchema, readInput, setupSwagger, slugParamSchema, slugSchema, slugify, swaggerSetupOptionsSchema, swaggerUiOptionsSchema, toOffsetPagination, uuidArraySchema, uuidSchema, uuidV4Schema };
+export { AllExceptionsFilter, ApiCommonResponses, ApiErrorResponse, ApiPaginatedResponse, type ApiResponse, type ApiResponseDecoratorOptions, type ApiResponseMeta, ApiSuccessResponse, ApiZodBody, ApiZodParam, ApiZodQuery, type AuthenticatedRequest, type AuthenticatedUser, type ErrorResponse, HttpExceptionFilter, type IdParam, LoggingInterceptor, MAX_ITEMS_PER_PAGE, type OffsetPagination, type PaginatedResult, type PaginationMeta, type PaginationParams, type PaginationQuery, type PaginationQueryCoerce, type SlugParam, type SwaggerSetupOptions, ZodBody, ZodParam, ZodQuery, ZodValidationPipe, apiResponseDecoratorOptionsSchema, apiResponseMetaSchema, authenticatedUserSchema, calculatePaginationMeta, createApiResponseSchema, createPaginatedResult, createPaginatedResultSchema, errorResponseSchema, extractUuids, generateUniqueSlug, idParamSchema, isCustomIssue, isInvalidElement, isInvalidFormat, isInvalidKey, isInvalidType, isInvalidUnion, isInvalidValue, isNotMultipleOf, isTooBig, isTooSmall, isUnrecognizedKeys, isValidSlug, isValidUuid, isValidUuidV4, normalizePagination, offsetPaginationSchema, optionalSlugSchema, optionalUuidSchema, paginationMetaSchema, paginationParamsSchema, paginationQueryCoerceSchema, paginationQuerySchema, readInput, setupSwagger, slugParamSchema, slugSchema, slugify, swaggerSetupOptionsSchema, swaggerUiOptionsSchema, toOffsetPagination, uuidArraySchema, uuidSchema, uuidV4Schema };
