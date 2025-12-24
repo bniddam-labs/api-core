@@ -200,7 +200,19 @@ var Logger = class {
       transports: [
         new winston__default.default.transports.Console({
           format: winston__default.default.format.combine(
-            winston__default.default.format.colorize(),
+            winston__default.default.format.colorize({
+              message: true,
+              level: true,
+              colors: {
+                error: "red",
+                warn: "yellow",
+                info: "green",
+                http: "magenta",
+                verbose: "cyan",
+                debug: "blue",
+                silly: "gray"
+              }
+            }),
             winston__default.default.format.printf((info) => {
               const ctx = info.context ? `[${info.context}]` : "";
               const stackTrace = info.stack ? `

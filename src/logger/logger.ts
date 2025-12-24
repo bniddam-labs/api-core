@@ -23,7 +23,19 @@ export class Logger {
 			transports: [
 				new winston.transports.Console({
 					format: winston.format.combine(
-						winston.format.colorize(),
+						winston.format.colorize({
+							message: true,
+							level: true,
+							colors: {
+								error: 'red',
+								warn: 'yellow',
+								info: 'green',
+								http: 'magenta',
+								verbose: 'cyan',
+								debug: 'blue',
+								silly: 'gray',
+							},
+						}),
 						winston.format.printf((info) => {
 							const ctx = info.context ? `[${info.context}]` : '';
 							const stackTrace = info.stack ? `\n${info.stack}` : '';
