@@ -449,6 +449,42 @@ declare function generateUniqueSlug(value: string, existingSlugs: string[], fall
 declare function isValidSlug(value: string): boolean;
 
 /**
+ * Logger class using Winston
+ * Provides a simple API similar to NestJS Logger and ConsoleLogger
+ *
+ * Can be used throughout the application and in consuming projects
+ */
+declare class Logger {
+    private readonly winston;
+    private readonly context?;
+    constructor(context?: string);
+    /**
+     * Log an informational message
+     */
+    log(message: string, ...optionalParams: unknown[]): void;
+    /**
+     * Log an error message
+     */
+    error(message: string, stackOrContext?: string | unknown, context?: string): void;
+    /**
+     * Log a warning message
+     */
+    warn(message: string, ...optionalParams: unknown[]): void;
+    /**
+     * Log a debug message
+     */
+    debug(message: string, ...optionalParams: unknown[]): void;
+    /**
+     * Log a verbose message
+     */
+    verbose(message: string, ...optionalParams: unknown[]): void;
+    /**
+     * Format optional parameters into a metadata object
+     */
+    private formatOptionalParams;
+}
+
+/**
  * Custom decorator that combines @Body and Zod validation
  *
  * This decorator simplifies the usage of Zod validation in controllers by
@@ -915,4 +951,4 @@ type SwaggerSetupOptions = z.infer<typeof swaggerSetupOptionsSchema>;
  */
 declare function setupSwagger(app: INestApplication, options?: SwaggerSetupOptions): void;
 
-export { AllExceptionsFilter, ApiCommonResponses, ApiErrorResponse, ApiPaginatedResponse, type ApiResponse, type ApiResponseDecoratorOptions, type ApiResponseMeta, ApiSuccessResponse, ApiZodBody, ApiZodParam, ApiZodQuery, type AuthenticatedRequest, type AuthenticatedUser, type ErrorResponse, HttpExceptionFilter, type IdParam, LoggingInterceptor, MAX_ITEMS_PER_PAGE, type OffsetPagination, type PaginatedResult, type PaginationMeta, type PaginationParams, type PaginationQuery, type PaginationQueryCoerce, type SlugParam, type SwaggerSetupOptions, ZodBody, ZodParam, ZodQuery, ZodValidationPipe, apiResponseDecoratorOptionsSchema, apiResponseMetaSchema, authenticatedUserSchema, calculatePaginationMeta, createApiResponseSchema, createPaginatedResult, createPaginatedResultSchema, errorResponseSchema, extractUuids, generateUniqueSlug, idParamSchema, isCustomIssue, isInvalidElement, isInvalidFormat, isInvalidKey, isInvalidType, isInvalidUnion, isInvalidValue, isNotMultipleOf, isTooBig, isTooSmall, isUnrecognizedKeys, isValidSlug, isValidUuid, isValidUuidV4, normalizePagination, offsetPaginationSchema, optionalSlugSchema, optionalUuidSchema, paginationMetaSchema, paginationParamsSchema, paginationQueryCoerceSchema, paginationQuerySchema, readInput, setupSwagger, slugParamSchema, slugSchema, slugify, swaggerSetupOptionsSchema, swaggerUiOptionsSchema, toOffsetPagination, uuidArraySchema, uuidSchema, uuidV4Schema };
+export { AllExceptionsFilter, ApiCommonResponses, ApiErrorResponse, ApiPaginatedResponse, type ApiResponse, type ApiResponseDecoratorOptions, type ApiResponseMeta, ApiSuccessResponse, ApiZodBody, ApiZodParam, ApiZodQuery, type AuthenticatedRequest, type AuthenticatedUser, type ErrorResponse, HttpExceptionFilter, type IdParam, Logger, LoggingInterceptor, MAX_ITEMS_PER_PAGE, type OffsetPagination, type PaginatedResult, type PaginationMeta, type PaginationParams, type PaginationQuery, type PaginationQueryCoerce, type SlugParam, type SwaggerSetupOptions, ZodBody, ZodParam, ZodQuery, ZodValidationPipe, apiResponseDecoratorOptionsSchema, apiResponseMetaSchema, authenticatedUserSchema, calculatePaginationMeta, createApiResponseSchema, createPaginatedResult, createPaginatedResultSchema, errorResponseSchema, extractUuids, generateUniqueSlug, idParamSchema, isCustomIssue, isInvalidElement, isInvalidFormat, isInvalidKey, isInvalidType, isInvalidUnion, isInvalidValue, isNotMultipleOf, isTooBig, isTooSmall, isUnrecognizedKeys, isValidSlug, isValidUuid, isValidUuidV4, normalizePagination, offsetPaginationSchema, optionalSlugSchema, optionalUuidSchema, paginationMetaSchema, paginationParamsSchema, paginationQueryCoerceSchema, paginationQuerySchema, readInput, setupSwagger, slugParamSchema, slugSchema, slugify, swaggerSetupOptionsSchema, swaggerUiOptionsSchema, toOffsetPagination, uuidArraySchema, uuidSchema, uuidV4Schema };

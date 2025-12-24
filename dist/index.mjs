@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { Injectable, Catch, HttpException, Logger, BadRequestException, Body, Param, Query, HttpStatus, applyDecorators } from '@nestjs/common';
-import { ConsoleLogger } from '@bniddam-labs/core';
+import winston from 'winston';
+import { Injectable, Catch, HttpException, Logger as Logger$1, BadRequestException, Body, Param, Query, HttpStatus, applyDecorators } from '@nestjs/common';
 import { tap } from 'rxjs/operators';
 import { ApiResponse, ApiBody, ApiQuery, ApiParam, DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
@@ -178,6 +178,99 @@ function generateUniqueSlug(value, existingSlugs, fallback) {
 function isValidSlug(value) {
   return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(value);
 }
+var Logger = class {
+  winston;
+  context;
+  constructor(context) {
+    this.context = context;
+    this.winston = winston.createLogger({
+      level: process.env.LOG_LEVEL || "info",
+      format: winston.format.combine(
+        winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+        winston.format.errors({ stack: true }),
+        winston.format.splat(),
+        winston.format.json()
+      ),
+      transports: [
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.colorize(),
+            winston.format.printf((info) => {
+              const ctx = info.context ? `[${info.context}]` : "";
+              const stackTrace = info.stack ? `
+${info.stack}` : "";
+              const timestamp = info.timestamp || (/* @__PURE__ */ new Date()).toISOString();
+              return `${timestamp} ${info.level} ${ctx} ${info.message}${stackTrace}`;
+            })
+          )
+        })
+      ]
+    });
+  }
+  /**
+   * Log an informational message
+   */
+  log(message, ...optionalParams) {
+    this.winston.info(message, {
+      context: this.context,
+      ...this.formatOptionalParams(optionalParams)
+    });
+  }
+  /**
+   * Log an error message
+   */
+  error(message, stackOrContext, context) {
+    const isStack = typeof stackOrContext === "string" && stackOrContext.includes("\n");
+    if (isStack) {
+      this.winston.error(message, {
+        context: context || this.context,
+        stack: stackOrContext
+      });
+    } else {
+      this.winston.error(message, {
+        context: this.context,
+        metadata: stackOrContext
+      });
+    }
+  }
+  /**
+   * Log a warning message
+   */
+  warn(message, ...optionalParams) {
+    this.winston.warn(message, {
+      context: this.context,
+      ...this.formatOptionalParams(optionalParams)
+    });
+  }
+  /**
+   * Log a debug message
+   */
+  debug(message, ...optionalParams) {
+    this.winston.debug(message, {
+      context: this.context,
+      ...this.formatOptionalParams(optionalParams)
+    });
+  }
+  /**
+   * Log a verbose message
+   */
+  verbose(message, ...optionalParams) {
+    this.winston.verbose(message, {
+      context: this.context,
+      ...this.formatOptionalParams(optionalParams)
+    });
+  }
+  /**
+   * Format optional parameters into a metadata object
+   */
+  formatOptionalParams(params) {
+    if (params.length === 0) return {};
+    if (params.length === 1 && typeof params[0] === "object") {
+      return { metadata: params[0] };
+    }
+    return { metadata: params };
+  }
+};
 var isInvalidType = (issue) => issue.code === "invalid_type";
 var isInvalidFormat = (issue) => issue.code === "invalid_format";
 var isTooSmall = (issue) => issue.code === "too_small";
@@ -198,7 +291,7 @@ var ZodValidationPipe = class {
     this.schema = schema;
     this.schemaName = schemaName;
   }
-  logger = new Logger(ZodValidationPipe.name);
+  logger = new Logger$1(ZodValidationPipe.name);
   transform(value, metadata) {
     try {
       return this.schema.parse(value);
@@ -325,7 +418,7 @@ function ZodQuery(schema, schemaName) {
   return Query(new ZodValidationPipe(schema, schemaName));
 }
 var AllExceptionsFilter = class {
-  logger = new ConsoleLogger("AllExceptionsFilter");
+  logger = new Logger("AllExceptionsFilter");
   catch(exception, host) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
@@ -378,7 +471,7 @@ AllExceptionsFilter = __decorateClass([
   Catch()
 ], AllExceptionsFilter);
 var HttpExceptionFilter = class {
-  logger = new ConsoleLogger("HttpExceptionFilter");
+  logger = new Logger("HttpExceptionFilter");
   catch(exception, host) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
@@ -442,7 +535,7 @@ HttpExceptionFilter = __decorateClass([
   Catch(HttpException)
 ], HttpExceptionFilter);
 var LoggingInterceptor = class {
-  logger = new ConsoleLogger("LoggingInterceptor");
+  logger = new Logger("LoggingInterceptor");
   intercept(context, next) {
     if (context.getType() !== "http") {
       return next.handle();
@@ -688,6 +781,6 @@ function setupSwagger(app, options) {
   });
 }
 
-export { AllExceptionsFilter, ApiCommonResponses, ApiErrorResponse, ApiPaginatedResponse, ApiSuccessResponse, ApiZodBody, ApiZodParam, ApiZodQuery, HttpExceptionFilter, LoggingInterceptor, MAX_ITEMS_PER_PAGE, ZodBody, ZodParam, ZodQuery, ZodValidationPipe, apiResponseDecoratorOptionsSchema, apiResponseMetaSchema, authenticatedUserSchema, calculatePaginationMeta, createApiResponseSchema, createPaginatedResult, createPaginatedResultSchema, errorResponseSchema, extractUuids, generateUniqueSlug, idParamSchema, isCustomIssue, isInvalidElement, isInvalidFormat, isInvalidKey, isInvalidType, isInvalidUnion, isInvalidValue, isNotMultipleOf, isTooBig, isTooSmall, isUnrecognizedKeys, isValidSlug, isValidUuid, isValidUuidV4, normalizePagination, offsetPaginationSchema, optionalSlugSchema, optionalUuidSchema, paginationMetaSchema, paginationParamsSchema, paginationQueryCoerceSchema, paginationQuerySchema, readInput, setupSwagger, slugParamSchema, slugSchema, slugify, swaggerSetupOptionsSchema, swaggerUiOptionsSchema, toOffsetPagination, uuidArraySchema, uuidSchema, uuidV4Schema };
+export { AllExceptionsFilter, ApiCommonResponses, ApiErrorResponse, ApiPaginatedResponse, ApiSuccessResponse, ApiZodBody, ApiZodParam, ApiZodQuery, HttpExceptionFilter, Logger, LoggingInterceptor, MAX_ITEMS_PER_PAGE, ZodBody, ZodParam, ZodQuery, ZodValidationPipe, apiResponseDecoratorOptionsSchema, apiResponseMetaSchema, authenticatedUserSchema, calculatePaginationMeta, createApiResponseSchema, createPaginatedResult, createPaginatedResultSchema, errorResponseSchema, extractUuids, generateUniqueSlug, idParamSchema, isCustomIssue, isInvalidElement, isInvalidFormat, isInvalidKey, isInvalidType, isInvalidUnion, isInvalidValue, isNotMultipleOf, isTooBig, isTooSmall, isUnrecognizedKeys, isValidSlug, isValidUuid, isValidUuidV4, normalizePagination, offsetPaginationSchema, optionalSlugSchema, optionalUuidSchema, paginationMetaSchema, paginationParamsSchema, paginationQueryCoerceSchema, paginationQuerySchema, readInput, setupSwagger, slugParamSchema, slugSchema, slugify, swaggerSetupOptionsSchema, swaggerUiOptionsSchema, toOffsetPagination, uuidArraySchema, uuidSchema, uuidV4Schema };
 //# sourceMappingURL=index.mjs.map
 //# sourceMappingURL=index.mjs.map

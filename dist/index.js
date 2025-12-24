@@ -1,10 +1,14 @@
 'use strict';
 
 var zod = require('zod');
+var winston = require('winston');
 var common = require('@nestjs/common');
-var core = require('@bniddam-labs/core');
 var operators = require('rxjs/operators');
 var swagger = require('@nestjs/swagger');
+
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
+
+var winston__default = /*#__PURE__*/_interopDefault(winston);
 
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __decorateClass = (decorators, target, key, kind) => {
@@ -180,6 +184,99 @@ function generateUniqueSlug(value, existingSlugs, fallback) {
 function isValidSlug(value) {
   return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(value);
 }
+var Logger = class {
+  winston;
+  context;
+  constructor(context) {
+    this.context = context;
+    this.winston = winston__default.default.createLogger({
+      level: process.env.LOG_LEVEL || "info",
+      format: winston__default.default.format.combine(
+        winston__default.default.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+        winston__default.default.format.errors({ stack: true }),
+        winston__default.default.format.splat(),
+        winston__default.default.format.json()
+      ),
+      transports: [
+        new winston__default.default.transports.Console({
+          format: winston__default.default.format.combine(
+            winston__default.default.format.colorize(),
+            winston__default.default.format.printf((info) => {
+              const ctx = info.context ? `[${info.context}]` : "";
+              const stackTrace = info.stack ? `
+${info.stack}` : "";
+              const timestamp = info.timestamp || (/* @__PURE__ */ new Date()).toISOString();
+              return `${timestamp} ${info.level} ${ctx} ${info.message}${stackTrace}`;
+            })
+          )
+        })
+      ]
+    });
+  }
+  /**
+   * Log an informational message
+   */
+  log(message, ...optionalParams) {
+    this.winston.info(message, {
+      context: this.context,
+      ...this.formatOptionalParams(optionalParams)
+    });
+  }
+  /**
+   * Log an error message
+   */
+  error(message, stackOrContext, context) {
+    const isStack = typeof stackOrContext === "string" && stackOrContext.includes("\n");
+    if (isStack) {
+      this.winston.error(message, {
+        context: context || this.context,
+        stack: stackOrContext
+      });
+    } else {
+      this.winston.error(message, {
+        context: this.context,
+        metadata: stackOrContext
+      });
+    }
+  }
+  /**
+   * Log a warning message
+   */
+  warn(message, ...optionalParams) {
+    this.winston.warn(message, {
+      context: this.context,
+      ...this.formatOptionalParams(optionalParams)
+    });
+  }
+  /**
+   * Log a debug message
+   */
+  debug(message, ...optionalParams) {
+    this.winston.debug(message, {
+      context: this.context,
+      ...this.formatOptionalParams(optionalParams)
+    });
+  }
+  /**
+   * Log a verbose message
+   */
+  verbose(message, ...optionalParams) {
+    this.winston.verbose(message, {
+      context: this.context,
+      ...this.formatOptionalParams(optionalParams)
+    });
+  }
+  /**
+   * Format optional parameters into a metadata object
+   */
+  formatOptionalParams(params) {
+    if (params.length === 0) return {};
+    if (params.length === 1 && typeof params[0] === "object") {
+      return { metadata: params[0] };
+    }
+    return { metadata: params };
+  }
+};
 var isInvalidType = (issue) => issue.code === "invalid_type";
 var isInvalidFormat = (issue) => issue.code === "invalid_format";
 var isTooSmall = (issue) => issue.code === "too_small";
@@ -327,7 +424,7 @@ function ZodQuery(schema, schemaName) {
   return common.Query(new exports.ZodValidationPipe(schema, schemaName));
 }
 exports.AllExceptionsFilter = class AllExceptionsFilter {
-  logger = new core.ConsoleLogger("AllExceptionsFilter");
+  logger = new Logger("AllExceptionsFilter");
   catch(exception, host) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
@@ -380,7 +477,7 @@ exports.AllExceptionsFilter = __decorateClass([
   common.Catch()
 ], exports.AllExceptionsFilter);
 exports.HttpExceptionFilter = class HttpExceptionFilter {
-  logger = new core.ConsoleLogger("HttpExceptionFilter");
+  logger = new Logger("HttpExceptionFilter");
   catch(exception, host) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
@@ -444,7 +541,7 @@ exports.HttpExceptionFilter = __decorateClass([
   common.Catch(common.HttpException)
 ], exports.HttpExceptionFilter);
 exports.LoggingInterceptor = class LoggingInterceptor {
-  logger = new core.ConsoleLogger("LoggingInterceptor");
+  logger = new Logger("LoggingInterceptor");
   intercept(context, next) {
     if (context.getType() !== "http") {
       return next.handle();
@@ -697,6 +794,7 @@ exports.ApiSuccessResponse = ApiSuccessResponse;
 exports.ApiZodBody = ApiZodBody;
 exports.ApiZodParam = ApiZodParam;
 exports.ApiZodQuery = ApiZodQuery;
+exports.Logger = Logger;
 exports.MAX_ITEMS_PER_PAGE = MAX_ITEMS_PER_PAGE;
 exports.ZodBody = ZodBody;
 exports.ZodParam = ZodParam;

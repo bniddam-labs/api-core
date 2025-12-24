@@ -2,7 +2,7 @@ import { type CallHandler, type ExecutionContext, Injectable, type NestIntercept
 import type { Request, Response } from 'express';
 import type { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { ConsoleLogger } from '@bniddam-labs/core';
+import { Logger } from '../logger/index.js';
 import type { AuthenticatedUser } from '../types/index.js';
 
 /**
@@ -24,7 +24,7 @@ export interface AuthenticatedRequest extends Request {
  */
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
-	private readonly logger = new ConsoleLogger('LoggingInterceptor');
+	private readonly logger = new Logger('LoggingInterceptor');
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
 		// Only intercept HTTP requests

@@ -12,6 +12,7 @@
 export * from './schemas/index.js';
 export * from './types/index.js';
 export * from './helpers/index.js';
+export * from './logger/index.js';
 
 // NestJS-specific exports
 export * from './decorators/index.js';

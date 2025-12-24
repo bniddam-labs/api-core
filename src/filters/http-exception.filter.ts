@@ -1,6 +1,6 @@
 import { type ArgumentsHost, Catch, type ExceptionFilter, HttpException } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { ConsoleLogger } from '@bniddam-labs/core';
+import { Logger } from '../logger/index.js';
 import type { ErrorResponse } from '../types/index.js';
 
 /**
@@ -11,7 +11,7 @@ import type { ErrorResponse } from '../types/index.js';
  */
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
-	private readonly logger = new ConsoleLogger('HttpExceptionFilter');
+	private readonly logger = new Logger('HttpExceptionFilter');
 
 	catch(exception: HttpException, host: ArgumentsHost): void {
 		const ctx = host.switchToHttp();
