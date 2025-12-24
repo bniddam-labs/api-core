@@ -12,6 +12,7 @@ Framework-agnostic HTTP API patterns with NestJS adapters (Zod schemas, validati
 - **Type-Safe Validation**: Powered by Zod with full TypeScript inference
 - **Swagger/OpenAPI**: Automatic API documentation from Zod schemas
 - **Standard Patterns**: Pagination, error handling, authentication
+- **Winston Logger**: Production-ready logging with context and structured output
 - **Production Ready**: Comprehensive logging, error handling, and security
 
 ## Installation
@@ -34,10 +35,12 @@ import {
   setupSwagger,
   AllExceptionsFilter,
   LoggingInterceptor,
+  Logger,
 } from '@bniddam-labs/api-core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
   // Setup global filters and interceptors
@@ -52,8 +55,8 @@ async function bootstrap() {
   });
 
   await app.listen(3000);
-  console.log('API: http://localhost:3000');
-  console.log('Swagger: http://localhost:3000/api');
+  logger.log('API: http://localhost:3000');
+  logger.log('Swagger: http://localhost:3000/api');
 }
 bootstrap();
 ```
@@ -135,6 +138,7 @@ This package is organized into focused modules, each with comprehensive document
 - **[Schemas](./src/schemas/README.md)** - Zod validation schemas for common API patterns (pagination, responses, auth, IDs, slugs)
 - **[Types](./src/types/README.md)** - TypeScript type definitions inferred from schemas
 - **[Helpers](./src/helpers/README.md)** - Utility functions for IDs, pagination, and slugs
+- **[Logger](./src/logger/README.md)** - Winston-based logging with context and structured output
 
 ### NestJS Modules
 
@@ -210,6 +214,26 @@ app.useGlobalFilters(new AllExceptionsFilter());
 //   path: "/api/users",
 //   method: "POST"
 // }
+```
+
+### Logging
+
+```typescript
+import { Logger } from '@bniddam-labs/api-core';
+
+// Create logger with context
+const logger = new Logger('UsersService');
+
+// Log with different levels
+logger.log('User created successfully');
+logger.warn('Cache miss, using database');
+logger.error('Database connection failed', error.stack);
+logger.debug('Processing request', { userId: 123 });
+
+// Configure via environment
+// LOG_LEVEL=debug  # Show all logs including debug
+// LOG_LEVEL=warn   # Only warnings and errors
+// LOG_LEVEL=info   # Default level
 ```
 
 ### Swagger Documentation
