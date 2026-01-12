@@ -459,7 +459,7 @@ exports.AllExceptionsFilter = class AllExceptionsFilter {
     const errorResponse = {
       statusCode: status,
       error: this.getErrorName(status),
-      message: process.env.NODE_ENV === "production" ? "Internal server error" : message,
+      message: message ?? "Internal server error",
       timestamp: (/* @__PURE__ */ new Date()).toISOString(),
       path: request.url,
       method: request.method
