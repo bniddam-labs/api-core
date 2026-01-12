@@ -44,7 +44,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 		const errorResponse: ErrorResponse = {
 			statusCode: status,
 			error: this.getErrorName(status),
-			message: process.env.NODE_ENV === 'production' ? 'Internal server error' : message,
+			message: message ?? 'Internal server error',
 			timestamp: new Date().toISOString(),
 			path: request.url,
 			method: request.method,
